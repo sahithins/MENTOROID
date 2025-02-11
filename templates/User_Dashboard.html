@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block content %}
+   <main class="flex-grow-1">
+    <div class="container py-6">
+     <div class="py-4">
+      <h3 class="display-10">
+       Welcome, {{ session.get('user_name') }}
+      </h3>
+      <div class="row mt-4">
+       <div class="col-md-6 col-lg-4 mb-4" id="ongoing-course-section" style="display: none;">
+        <div class="card shadow-sm">
+         <div class="card-body">
+          <h5 class="card-title">
+           Ongoing Course
+          </h5>
+          <div class="d-flex align-items-center mt-3">
+           <img alt="Ongoing course thumbnail, a preview of the course content" class="rounded-circle" height="64" src="https://storage.googleapis.com/a1aa/image/lI8TGUZPREvOyxOG8ksz1M0QzYEfZBJXn3ia907XkiI.jpg" width="64"/>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             Ongoing Course Title
+            </h6>
+            <p class="card-text">
+             Brief description of the ongoing course.
+            </p>
+           </div>
+          </div>
+          <a class="btn btn-link text-primary mt-3" href="#">
+           Resume Course
+          </a>
+         </div>
+        </div>
+       </div>
+       <!-- Projects Section -->
+       <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm">
+         <div class="card-body">
+          <h5 class="card-title">
+           Courses
+          </h5>
+          <div class="d-flex align-items-center mt-3">
+           <img alt="Project thumbnail, a preview of the project content" class="rounded-circle" height="48" src="https://storage.googleapis.com/a1aa/image/1xFT2achqqJl0z9OjB_FeRp6oD6MDMvIQwPLjXdynao.jpg" width="48"/>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             Course Title 1
+            </h6>
+            <p class="card-text">
+             Brief description of the course.
+            </p>
+           </div>
+          </div>
+          <div class="d-flex align-items-center mt-3">
+           <img alt="Project thumbnail, a preview of the project content" class="rounded-circle" height="48" src="https://storage.googleapis.com/a1aa/image/1xFT2achqqJl0z9OjB_FeRp6oD6MDMvIQwPLjXdynao.jpg" width="48"/>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             Course Title 2
+            </h6>
+            <p class="card-text">
+             Brief description of the course.
+            </p>
+           </div>
+          </div>
+          <a class="btn btn-link text-primary mt-3" href="#">
+           View All Courses
+          </a>
+         </div>
+        </div>
+       </div>
+       <!-- Courses Section -->
+       <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm">
+         <div class="card-body">
+          <h5 class="card-title">
+           Materials
+          </h5>
+          <p>Newly Uploaded</p>
+          <div class="d-flex align-items-center mt-3">
+           <img alt="Course thumbnail, a preview of the course content" class="rounded-circle" height="48" src="https://storage.googleapis.com/a1aa/image/KRSNBRHEdAHKlgwIBgqQp0xJnVW0jz58j1nE-_3Z8wQ.jpg" width="48"/>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             -- Title --
+            </h6>
+            <p class="card-text">
+             details.
+            </p>
+           </div>
+          </div>
+          <div class="d-flex align-items-center mt-3">
+           <img alt="Course thumbnail, a preview of the course content" class="rounded-circle" height="48" src="https://storage.googleapis.com/a1aa/image/KRSNBRHEdAHKlgwIBgqQp0xJnVW0jz58j1nE-_3Z8wQ.jpg" width="48"/>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             -- Title 2 --
+            </h6>
+            <p class="card-text">
+             details.
+            </p>
+           </div>
+          </div>
+          <a class="btn btn-link text-primary mt-3" href="{{ url_for('user_materials') }}">
+           View All Materials
+          </a>
+         </div>
+        </div>
+       </div>
+       <!-- Notifications Section -->
+       <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm">
+         <div class="card-body">
+          <h5 class="card-title">
+           Notifications
+          </h5>
+          <div class="d-flex align-items-center mt-3">
+           <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style="width: 48px; height: 48px;">
+            <i class="fas fa-bell">
+            </i>
+           </div>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             Notification Title 1
+            </h6>
+            <p class="card-text">
+             Brief description of the notification.
+            </p>
+           </div>
+          </div>
+          <div class="d-flex align-items-center mt-3">
+           <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style="width: 48px; height: 48px;">
+            <i class="fas fa-bell">
+            </i>
+           </div>
+           <div class="ml-3">
+            <h6 class="card-subtitle mb-2">
+             Notification Title 2
+            </h6>
+            <p class="card-text">
+             Brief description of the notification.
+            </p>
+           </div>
+          </div>
+          <a class="btn btn-link text-primary mt-3" href="#">
+           View All Notifications
+          </a>
+         </div>
+        </div>
+       </div>
+       <!-- Profile Section -->
+      </div>
+     </div>
+    </div>
+   </main>
+{% endblock content %}

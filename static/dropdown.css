@@ -1,0 +1,20 @@
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+    top: 0;
+    left: 100%; /* Position to the right of the parent */
+    margin-top: -6px; /* Align with the parent item */
+    margin-left: -1px; /* Adjust for border */
+}
+
+/* Hide the nested dropdown by default */
+.dropdown-submenu .dropdown-menu {
+    display: none;
+}
+
+/* Show the nested dropdown on hover */
+.dropdown-submenu:hover .dropdown-menu {
+    display: block;
+}

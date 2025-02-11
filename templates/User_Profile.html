@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div>
+        <div class="col-md-6 col-lg-4 mb-2">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        Profile
+                    </h5>
+                    <div class="d-flex align-items-center mt-3">
+                        <img alt="User profile picture, a generic avatar icon" class="rounded-circle" height="64"
+                            src="{{ session.get('profile_picture') }}"
+                            width="64" />
+                        <div class="ml-3">
+                            <h6 class="card-subtitle mb-2">
+                                {{ session.get('user_name') }}
+                            </h6>
+                            <p class="card-text">
+                                {{ session.get('user_email') }}
+                            </p>
+                        </div>
+                    </div>
+                    <a class="btn btn-link text-primary mt-3" href="#">
+                        Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

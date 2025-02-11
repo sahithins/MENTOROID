@@ -1,0 +1,9 @@
+Flask>=2.0.0
+Werkzeug>=2.0.0
+Flask-SQLAlchemy>=2.5.0
+Flask-PyMongo>=2.3.0
+# Flask-MongoEngine>=0.10.0
+flask-Bcrypt
+Flask-WTF>=0.15.0
+WTForms>=2.3.3
+git+https://github.com/idoshr/flask-mongoengine.git@1.0.1

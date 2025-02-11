@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+    <br>
+    <main class="container">
+        <div class="row">
+            {% for course in courses %}
+                <div class="col-sm-6 col-lg-4 mb-4">
+                    <div class="card card-custom border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">{{ course.name }}</h5>
+                            <p class="card-text">recent uploads</p>
+                            <ul class="list-unstyled">
+                                <li class="d-flex justify-content-between align-items-center">
+                                    <span>• upload - 1</span>
+                                    <a href="#" class="text-primary">Download</a>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center">
+                                    <span>• upload - 2</span>
+                                    <a href="#" class="text-primary">Download</a>
+                                </li>
+                            </ul>
+                            <a href="{{ url_for('content_upload') }}?course={{ course.name }}" class="btn btn-outline-primary">View all uploads</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+{% endblock content %}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dropdown.css') }}">
+
+    {% if title %}
+        <title>{{ title }}</title>
+    {% else %}
+        <title>Mentoroid</title>
+    {% endif %}
+
+    {% if session.get('user_logged_in') or session.get('mentor_logged_in') %}
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    {% else %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% endif %}
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        /* Show the dropdown menu on hover */
+       
+         
+    </style>
+    <style>
+        .dropdown:hover > .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+    </style>
+    <style>
+        .card-custom {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-custom:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .card-custom:active {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div class="min-vh-100 d-flex flex-column">
+<!-- <body class="d-flex flex-column min-vh-100"> -->
+    {% if session.get('user_logged_in') %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-secondary shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    Mentoroid
+                </a>
+                <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+                    data-target="#navbarNav" data-toggle="collapse" type="button">
+                    <span class="navbar-toggler-icon">
+                    </span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('user_dashboard') }}">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user_materials') }}">
+                                Materials
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                My Courses
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Courses
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% for course in courses %}
+                                    <li class="dropdown-submenu" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item dropdown-toggle" href="#">{{ course.name }}</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Buy</a></li>
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('profile') }}">
+                                Profile
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="dropdown ml-3">
+                        <button aria-expanded="false" aria-haspopup="true" class="btn btn-outline-secondary dropdown-toggle"
+                            data-toggle="dropdown" id="userMenuButton" type="button">
+                            <img class="rounded-circle" height="40"
+                                src="{{ session.get('profile_picture') }}"
+                                width="40" />
+                        </button>
+                        <div aria-labelledby="userMenuButton" class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="#">
+                                Settings
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('logout') }}">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    {% elif session.get('mentor_logged_in') %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-secondary shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    Mentoroid
+                </a>
+                <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+                    data-target="#navbarNav" data-toggle="collapse" type="button">
+                    <span class="navbar-toggler-icon">
+                    </span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('mentor_dashboard') }}">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Courses
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% for course in courses %}
+                                    <li class="dropdown-submenu" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item dropdown-toggle" href="#">{{ course.name }}</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{{ url_for('content_upload') }}?course={{ course.name }}">Upload Course Content</a></li>
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                Profile
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="dropdown ml-3">
+                        <button aria-expanded="false" aria-haspopup="true" class="btn btn-outline-secondary dropdown-toggle"
+                            data-toggle="dropdown" id="userMenuButton" type="button">
+                            <img alt="User profile picture, a generic avatar icon" class="rounded-circle" height="40"
+                                src="https://storage.googleapis.com/a1aa/image/hAVNsNIQDzsvr4_xPiKA8pc4QcHT69SNWqCdSncR3FQ.jpg"
+                                width="40" />
+                        </button>
+                        <div aria-labelledby="userMenuButton" class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="#">
+                                Settings
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('mentor_logout') }}">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    {% else %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-secondary shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="/">Mentoroid</a>
+                <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+                    data-target="#navbarNav" data-toggle="collapse" type="button">
+                    <span class="navbar-toggler-icon">
+                    </span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav" style="padding-left: 700px;">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="Home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="About">About</a>
+                        </li>
+                        <!-- <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="Contact">Contact Us</a>
+                        </li> -->
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="User_Login">User</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="Mentor_Login">Mentor</a>
+                        </li>
+                        <a href="Register" class="btn btn-outline-light" tabindex="-1" role="button">Register</a>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+
+    <div class="container col-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+    <!-- Footer -->
+    <footer class="bg-light shadow-sm">
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted mb-0">
+                    © 2025 <a href="https://Mentoroid.in/" target="_blank">Mentoroid</a> All rights reserved.
+                </p>
+                <div class="d-flex">
+                    <a class="text-muted mx-2" href="#">
+                        <i class="fab fa-facebook-f">
+                        </i>
+                    </a>
+                    <a class="text-muted mx-2" href="#">
+                        <i class="fab fa-twitter">
+                        </i>
+                    </a>
+                    <a class="text-muted mx-2" href="#">
+                        <i class="fab fa-linkedin-in">
+                        </i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js">
+    </script>
+    <script>
+        // Simulate user purchase status
+        const userHasPurchased = true; // Change to false to hide ongoing sections
+
+        if (userHasPurchased) {
+            document.getElementById('ongoing-project-section').style.display = 'block';
+            document.getElementById('ongoing-course-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
