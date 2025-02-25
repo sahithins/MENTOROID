@@ -3,55 +3,94 @@
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-6 text-center">
-                <img src="{{ url_for('static', filename='images/01.jpg') }}" class="img-fluid" alt="Register" style="height: 580px; width: 580px; padding-bottom: 20%;">
+                <img src="{{ url_for('static', filename='images/01.jpg') }}" class="img-fluid" alt="Register"
+                    style="height: 580px; width: 580px; padding-bottom: 20%;">
             </div>
             <div class="col-md-6">
                 <div class="card">
                     <h4 class="card-header bg-success text-white text-center">Register</h4>
                     <div class="card-body">
                         <form method="post" id="Form" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="">Select Role</option>
+                                    <option value="User ">User </option>
+                                    <option value="Mentor">Mentor</option>
+                                </select>
+                            </div>
                             <div class="row mb-3">
                                 <div class="input-field col">
                                     <label for="fullname" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="fullname" name="fullname" placeholder="Enter Full Name" required>
+                                    <input type="text" class="form-control" id="fullname" name="fullname"
+                                        placeholder="Enter Full Name" required>
                                 </div>
                                 <div class="col">
                                     <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                        placeholder="Enter Password" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col">
+                                <div class="col" id="age-field">
                                     <label for="age" class="form-label">Age</label>
-                                    <input type="number" class="form-control" id="age" name="age" placeholder="Enter Age" required>
+                                    <input type="number" class="form-control" id="age" name="age" placeholder="Enter Age">
                                 </div>
                                 <div class="col">
                                     <label for="phonenumber" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phonenumber" name="phonenumber" placeholder="Enter Phone Number" required>
+                                    <input type="tel" class="form-control" id="phonenumber" name="phonenumber"
+                                        placeholder="Enter Phone Number" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
+                                    <input type="email" class="form-control" name="email" placeholder="Enter Email"
+                                        required>
                                 </div>
-                                <div class="col">
+                                <div class="col" id="address-field">
                                     <label for="address" class="form-label">Address</label>
-                                    <input type="text" class="form-control" id="address" name="address" placeholder="Enter Address" required>
+                                    <input type="text" class="form-control" id="address" name="address"
+                                        placeholder="Enter Address">
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="imagefile" class="form-label">Please Upload your Profile Picture</label>
                                 <input class="form-control" id="imagefile" type="file" name="imagefile">
                             </div>
+
+                            <!-- Additional fields for Mentor role -->
+                            <div id="mentor-fields" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="qualification" class="form-label">Qualification</label>
+                                    <input type="text" class="form-control" id="qualification" name="qualification"
+                                        placeholder="Enter Qualification">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="experience" class="form-label">Experience description briefly</label>
+                                    <textarea class="form-control" id="experience" name="experience"
+                                        placeholder="Describe your experience" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="linkedin" class="form-label">LinkedIn profile</label>
+                                    <input type="url" class="form-control" id="linkedin" name="linkedin"
+                                        placeholder="Enter LinkedIn profile URL">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="resume" class="form-label">Resume upload</label>
+                                    <input class="form-control" id="resume" type="file" name="resume">
+                                </div>
+                            </div>
+
                             <div id="message1" class="text-danger"></div>
                             <div id="message2" class="text-danger"></div>
                             <div class="text-center">
                                 <button type="submit" class="btn btn-success">Submit</button>
                             </div>
                             <div class="text-center mt-3">
-                                <a href="{{ url_for('login') }}">Login</a> |
-                                <a href="{{ url_for('logout') }}">Register</a>
+                                <a href="/User _Login">Login</a> |
+                                <a href="/Register">Register</a>
                             </div>
                         </form>
                     </div>
@@ -61,28 +100,20 @@
     </div>
 
     <script>
-        document.getElementById("Form").addEventListener("submit", function(event) {
-            var password = document.getElementById("password").value;
-            var phonenumber = document.getElementById("phonenumber").value;
-            var message1 = document.getElementById("message1");
-            var message2 = document.getElementById("message2");
-            
-            // Password validation
-            var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!passwordPattern.test(password)) {
-                event.preventDefault();
-                message1.textContent = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.";
-            } else {
-                message1.textContent = "";
-            }
+        document.getElementById("role").addEventListener("change", function () {
+            var role = this.value;
+            var ageField = document.getElementById("age-field");
+            var addressField = document.getElementById("address-field");
+            var mentorFields = document.getElementById("mentor-fields");
 
-            // Phone number validation
-            var phonePattern = /^\d{10}$/;
-            if (!phonePattern.test(phonenumber)) {
-                event.preventDefault();
-                message2.textContent = "Phone number must be exactly 10 digits.";
+            if (role === "Mentor") {
+                ageField.style.display = "none";
+                addressField.style.display = "none";
+                mentorFields.style.display = "block"; // Show mentor fields
             } else {
-                message2.textContent = "";
+                ageField.style.display = "block"; // Use block to align correctly
+                addressField.style.display = "block"; // Use block to align correctly
+                mentorFields.style.display = "none"; // Hide mentor fields
             }
         });
     </script>

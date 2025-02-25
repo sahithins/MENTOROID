@@ -3,22 +3,19 @@
     <br>
     <main class="container">
         <div class="row">
-            <!-- Left Side: Course Name and Uploaded Content -->
+            <!-- Left Side: Course Name and last 2 recently Uploaded Content -->
             <div class="col-md-4 mb-4">
                 <div class="card card-custom border-primary">
                     <div class="card-body">
                         <h5 class="card-title text-primary">{{ course }}</h5>
                         <p class="card-text">Uploaded Content</p>
                         <ul class="list-unstyled">
-                            <li class="d-flex justify-content-between align-items-center">
-                                <span>• upload - 1</span>
-                                <a href="#" class="text-primary">Download</a>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center">
-                                <span>• upload - 2</span>
-                                <a href="#" class="text-primary">Download</a>
-                            </li>
-                            <!-- Add more uploaded content as needed -->
+                            {% for content in contents %}
+                                <li class="d-flex justify-content-between align-items-center">
+                                    <span>• {{ content.title }}</span>
+                                    <a href="/Download?filename={{ content.upload_file }}" class="text-primary">Download</a>
+                                </li>
+                            {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -28,20 +25,30 @@
                 <div class="card card-custom border-success">
                     <div class="card-body">
                         <h5 class="card-title text-success">Upload New Content</h5>
-                        <form method="POST" enctype="multipart/form-data">
+                        <form method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="form-group">
-                                <label for="contentTitle">Content Title</label>
-                                <input type="text" class="form-control" id="contentTitle" name="title" placeholder="Enter content title">
+                                <label for="select-content-type">Select File Type</label>
+                                <select id="select-content type" name="contenttype" class="form-control" required>
+                                    <option value="Video">Upload Video</option>
+                                    <option value="Material">Upload Material</option>
+                                    <!-- Add more options as needed -->
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="contentDescription">Content Description</label>
-                                <textarea class="form-control" id="contentDescription" rows="3" name="description" placeholder="Enter content description"></textarea>
+                                <label for="title">Title</label>
+                                <input type="text" id="title" class="form-control" name="title" placeholder="Title" required>
                             </div>
                             <div class="form-group">
-                                <label for="contentFile">Upload File</label>
-                                <input type="file" class="form-control-file" name="file" id="contentFile">
+                                <label for="description">Description</label>
+                                <textarea id="description" class="form-control" rows="2" name="description"
+                                    placeholder="Description" required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-success">Upload</button>
+                            <div class="form-group">
+                                <label for="upload-file">Upload file</label>
+                                <input type="file" id="upload-file" name="file" class="form-control-file" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Upload</button>
                         </form>
                     </div>
                 </div>

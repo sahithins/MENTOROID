@@ -1,132 +1,60 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container mt-5">
-        <h1 class="mb-4">
-            Materials
-        </h1>
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <h2>
-                    Recently Uploaded
-                </h2>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Lesson 1: Introduction to Programming
-                        </h5>
-                        <p class="card-text">
-                            An introductory lesson on the basics of programming, covering fundamental concepts and
-                            syntax.
-                        </p>
-                        <a class="btn btn-primary" href="#">
-                            Download
-                        </a>
-                    </div>
+    <br>
+    <br>
+    <div class="container">
+        <div class="row">
+            <!-- Course Content Section -->
+            <div class="col-md-4 mb-4 p-4 border border-secondary rounded slide-in">
+                <h2 class="h4 font-weight-bold mb-4">Course Content</h2>
+                <div class="form-group mb-4">
+                    <label for="course" class="font-weight-medium">Select Course</label>
+                    <select id="course" name="coursename" class="form-control">
+                        <option value="">Select Course</option>
+                        {% for course in courses.objects.all() %}
+                            {% if course.course_name in enrolled_courses %}
+                                <option value="{{ course.course_name }}">{{ course.course_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Lesson 2: Data Structures
-                        </h5>
-                        <p class="card-text">
-                            A comprehensive guide to understanding and implementing various data structures in
-                            programming.
-                        </p>
-                        <a class="btn btn-primary" href="#">
-                            Download
-                        </a>
-                    </div>
+                <div class="form-group mb-4">
+                    <label for="content-type" class="font-weight-medium">Select Content Type</label>
+                    <select id="content-type" name="contenttype" class="form-control">
+                        <option value="">Select Content Type</option>
+                        <option value="Video">Videos</option>
+                        <option value="Material">Materials</option>
+                    </select>
                 </div>
+                <button class="btn btn-primary bounce-in" onclick="searchContent()">View Content</button>
             </div>
-            <div class="col-md-6">
-                <h2>
-                    All Materials
-                </h2>
-                <div class="input-group mb-3">
-                    <input aria-describedby="button-addon2" aria-label="Search for materials" class="form-control"
-                        placeholder="Search for materials" name="search_materials" id="search_materials" type="text" />
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" id="search_button" type="button" onclick="searchMaterials()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                {% if session.get('search_materials') %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                {{ session.get('search_materials') }}
-                            </h5>
-                            <p class="card-text">
-                                An in-depth look at algorithms, including sorting, searching, and optimization techniques.
-                            </p>
-                            <a class="btn btn-primary" href="#">
-                                Download
-                            </a>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                Lesson 3: Algorithms
-                            </h5>
-                            <p class="card-text">
-                                An in-depth look at algorithms, including sorting, searching, and optimization techniques.
-                            </p>
-                            <a class="btn btn-primary" href="#">
-                                Download
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                Lesson 4: Object-Oriented Programming
-                            </h5>
-                            <p class="card-text">
-                                Learn the principles of object-oriented programming and how to apply them in real-world
-                                scenarios.
-                            </p>
-                            <a class="btn btn-primary" href="#">
-                                Download
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                Lesson 5: Web Development
-                            </h5>
-                            <p class="card-text">
-                                An overview of web development, including HTML, CSS, JavaScript, and modern frameworks.
-                            </p>
-                            <a class="btn btn-primary" href="#">
-                                Download
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                Lesson 6: Database Management
-                            </h5>
-                            <p class="card-text">
-                                A detailed guide on database management systems, SQL, and data modeling techniques.
-                            </p>
-                            <a class="btn btn-primary" href="#">
-                                Download
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
+    
+            <!-- Search Results Section -->
+            <div class="col-md-8 p-4 fade-in">
+                <h2 class="h4 font-weight-bold mb-4">Search Results</h2>
+                <ul class="list-unstyled mb-4">
+                    {%for content in contents %}
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ content.title }}</span>
+                            <a href="/Download?filename={{ content.upload_file }}" class="text-primary">download</a>
+                            <input type="hidden" class="file-name" value="{{ content.upload_file }}">
+                        </li>
+                    {% endfor %}
+                </ul>
+                <button class="btn btn-primary bounce-in" onclick="downloadZip()">Zip Download</button>
             </div>
         </div>
     </div>
     <script>
-        function searchMaterials() {
-            const query = document.getElementById('search_materials').value;
-            window.location.href = `/search?query=${encodeURIComponent(query)}`;
+        function searchContent() {
+            const query1 = document.getElementById('course').value;
+            const query2 = document.getElementById('content-type').value;
+            window.location.href = `/search?query1=${encodeURIComponent(query1)}&query2=${encodeURIComponent(query2)}`;
+        }
+        function downloadZip() {
+            const fileNames = Array.from(document.querySelectorAll('.file-name')).map(input => input.value);
+            const queryString = fileNames.map(file => `files=${encodeURIComponent(file)}`).join('&');
+            window.location.href = `/download_zip?${queryString}`;
         }
     </script>
 {% endblock content %}

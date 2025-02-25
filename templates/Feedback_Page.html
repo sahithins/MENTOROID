@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title">User Feedback Form</h4>
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label for="userName">User Name</label>
+                        <input type="text" class="form-control" id="userName" name="username" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mentorName">Mentor Name</label>
+                        <select class="form-control" id="mentorName" name="mentorname" required>
+                            <option>Select a mentor</option>
+                            {% for mentor in mentors.objects.all() %}
+                                <option value="{{ mentor.fullname }}">{{ mentor.fullname }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseName">Course Name</label>
+                        <select class="form-control" id="courseName" name="coursename" required>
+                            <option>Select a course</option>
+                            {% for course in courses.objects.all() %}
+                                <option value="{{ course.course_name }}">{{ course.course_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rating">Rating</label>
+                        <select class="form-control" id="rating" name="rating" required>
+                            <option value="" disabled selected>Select a rating</option>
+                            <option value="1">1 - Very Poor</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="3">3 - Average</option>
+                            <option value="4">4 - Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback">Feedback</label>
+                        <textarea class="form-control" id="feedback" rows="5" name="feedback" placeholder="Enter your feedback" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="suggestions">Suggestions for Improvement</label>
+                        <textarea class="form-control" id="suggestions" rows="5" name="suggestions" placeholder="Enter your suggestions"></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

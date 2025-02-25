@@ -9,6 +9,7 @@
                 <h3 class="card-header bg-success text-white">User Login</h3>
                 <div class="card-body">
                     <form id="loginForm" method="POST" action="">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         {{ form.hidden_tag() }}
                         <fieldset class="form-group">
                             <div class="form-group">

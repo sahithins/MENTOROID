@@ -1,30 +1,108 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div>
-        <div class="col-md-6 col-lg-4 mb-2">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        Profile
-                    </h5>
-                    <div class="d-flex align-items-center mt-3">
-                        <img alt="User profile picture, a generic avatar icon" class="rounded-circle" height="64"
-                            src="{{ session.get('profile_picture') }}"
-                            width="64" />
-                        <div class="ml-3">
-                            <h6 class="card-subtitle mb-2">
-                                {{ session.get('user_name') }}
-                            </h6>
-                            <p class="card-text">
-                                {{ session.get('user_email') }}
-                            </p>
-                        </div>
-                    </div>
-                    <a class="btn btn-link text-primary mt-3" href="#">
-                        Edit Profile
-                    </a>
+    <main class="bg-light d-flex align-items-center justify-content-center min-vh-80">
+        <div class="card w-100" style="max-width: 400px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h4 class="card-title">User Profile</h4>
+                    <button class="btn btn-link text-primary" id="editButton">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
                 </div>
+                <div id="profileDetails">
+                    <div class="text-center mb-2 position-relative">
+                        <img class="rounded-circle profile-picture" id="profilePicture"
+                            src="{{ user.image_file }}" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Name:</label>
+                        <p class="form-control-plaintext" id="name">{{ user.fullname }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Age:</label>
+                        <p class="form-control-plaintext" id="age">{{ user.age }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Email:</label>
+                        <p class="form-control-plaintext" id="email">{{ session.get('user_email') }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Phone Number:</label>
+                        <p class="form-control-plaintext" id="phonenumber">{{ user.phonenumber }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Address:</label>
+                        <p class="form-control-plaintext" id="address">{{ user.address }}</p>
+                    </div>
+                </div>
+                <form id="editForm" class="d-none" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="text-center mb-2 position-relative">
+                        <label class="cursor-pointer" for="editProfilePicture">
+                            <img class="rounded-circle profile-picture"
+                                id="editProfilePicturePreview"
+                                src="{{ user.image_file }}" />
+                            <span class="edit-icon"><i class="fas fa-camera"></i></span>
+                        </label>
+                        <input accept="image/*" class="d-none" id="editProfilePicture" name="profile_picture" type="file" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Name:</label>
+                        <input class="form-control" id="editName" name="name" type="text" value="{{ user.fullname }}" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Age:</label>
+                        <input class="form-control" id="editAge" name="age" type="number" value="{{ user.age }}" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Email:</label>
+                        <input class="form-control" id="editEmail" name="email" type="email" value="{{ session.get('user_email') }}" readonly/>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Phone Number:</label>
+                        <input class="form-control" id="editPhone" name="phonenumber" type="text" value="{{ user.phonenumber }}" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold">Address:</label>
+                        <input class="form-control" id="editAddress" name="address" type="text"
+                            value="{{ user.address }}" />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary" id="saveButton" type="submit">Save</button>
+                        <button class="btn btn-secondary ml-2" id="cancelButton" type="button">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+        <script>
+            const editButton = document.getElementById('editButton');
+            const saveButton = document.getElementById('saveButton');
+            const cancelButton = document.getElementById('cancelButton');
+            const profileDetails = document.getElementById('profileDetails');
+            const editForm = document.getElementById('editForm');
+            const editProfilePicture = document.getElementById('editProfilePicture');
+            const editProfilePicturePreview = document.getElementById('editProfilePicturePreview');
+            const profilePicture = document.getElementById('profilePicture');
+
+            editButton.addEventListener('click', () => {
+                profileDetails.classList.add('d-none');
+                editForm.classList.remove('d-none');
+            });
+
+            cancelButton.addEventListener('click', () => {
+                profileDetails.classList.remove('d-none');
+                editForm.classList.add('d-none');
+            });
+
+            editProfilePicture.addEventListener('change', () => {
+                if (editProfilePicture.files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        editProfilePicturePreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(editProfilePicture.files[0]);
+                }
+            });
+        </script>
+    </main>
 {% endblock content %}

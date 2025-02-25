@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+    <main class="mt-4 container">
+        <div>
+            <h5>All Enrolled Users</h5>
+            <br>
+            <table class="table">
+                <thead>
+                    <tr>
+                        {% for key in ['User Name', 'Email', 'Enrolled Courses'] %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in enrolled_users %}
+                        <tr>
+                            <td>{{ user['User Name'] }}</td>
+                            <td>{{ user['Email'] }}</td>
+                            <td>{{ user['Enrolled Courses'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock content %}

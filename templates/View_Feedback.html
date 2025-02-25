@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+    <main class="mt-4 container">
+        <div>
+            <h5>All Feedbacks</h5>
+            <br>
+            <table class="table">
+                <thead>
+                    <tr>
+                        {% for key in ['User Name', 'Course Name', 'Rating', 'Feedback', 'Suggestions'] %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in feedbacks %}
+                        <tr>
+                            <td>{{ feedback.user_name }}</td>
+                            <td>{{ feedback.course_name }}</td>
+                            <td>{{ feedback.rating }}</td>
+                            <td>{{ feedback.feedback }}</td>
+                            <td>{{ feedback.suggestions }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock content %}

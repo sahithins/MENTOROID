@@ -26,9 +26,11 @@
         body {
             font-family: 'Roboto', sans-serif;
         }
-        /* Show the dropdown menu on hover */
-       
-         
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
     </style>
     <style>
         .dropdown:hover > .dropdown-menu {
@@ -47,6 +49,51 @@
         .card-custom:active {
             transform: translateY(-5px);
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 1s ease-in-out;
+        }
+
+        @keyframes bounceIn {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bounce-in {
+            animation: bounceIn 1s ease-in-out;
         }
     </style>
 </head>
@@ -74,29 +121,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('user_materials') }}">
-                                Materials
+                                View Materials
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ url_for('my_courses') }}">
                                 My Courses
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Courses
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('feedback') }}">
+                                Feedback
                             </a>
-                            <ul class="dropdown-menu">
-                                {% for course in courses %}
-                                    <li class="dropdown-submenu" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item dropdown-toggle" href="#">{{ course.name }}</a>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Buy</a></li>
-                                        </ul>
-                                    </li>
-                                {% endfor %}
-                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('profile') }}">
@@ -108,14 +144,17 @@
                         <button aria-expanded="false" aria-haspopup="true" class="btn btn-outline-secondary dropdown-toggle"
                             data-toggle="dropdown" id="userMenuButton" type="button">
                             <img class="rounded-circle" height="40"
-                                src="{{ session.get('profile_picture') }}"
+                                src="{{session.get('profile_picture')}}"
                                 width="40" />
                         </button>
                         <div aria-labelledby="userMenuButton" class="dropdown-menu dropdown-menu-right">
+                            <div class="dropdown-item text-center">
+                                {{ session.get('user_name') }}
+                            </div>
                             <a class="dropdown-item" href="#">
-                                Settings
+                                {{ session.get('user_email') }}
                             </a>
-                            <a class="dropdown-item" href="{{ url_for('logout') }}">
+                            <a class="dropdown-item text-center text-primary" href="{{ url_for('logout') }}">
                                 Logout
                             </a>
                         </div>
@@ -141,25 +180,19 @@
                                 Dashboard
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Courses
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('mentor_courses') }}">
+                                My Courses
                             </a>
-                            <ul class="dropdown-menu">
-                                {% for course in courses %}
-                                    <li class="dropdown-submenu" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item dropdown-toggle" href="#">{{ course.name }}</a>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="{{ url_for('content_upload') }}?course={{ course.name }}">Upload Course Content</a></li>
-                                        </ul>
-                                    </li>
-                                {% endfor %}
-                            </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Profile
+                            <a class="nav-link" href="{{ url_for('enrolled_users') }}">
+                                Enrolled Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('view_feedback') }}">
+                                View Feedback
                             </a>
                         </li>
                     </ul>
@@ -167,14 +200,17 @@
                         <button aria-expanded="false" aria-haspopup="true" class="btn btn-outline-secondary dropdown-toggle"
                             data-toggle="dropdown" id="userMenuButton" type="button">
                             <img alt="User profile picture, a generic avatar icon" class="rounded-circle" height="40"
-                                src="https://storage.googleapis.com/a1aa/image/hAVNsNIQDzsvr4_xPiKA8pc4QcHT69SNWqCdSncR3FQ.jpg"
+                                src="{{session.get('profile_picture') }}"
                                 width="40" />
                         </button>
                         <div aria-labelledby="userMenuButton" class="dropdown-menu dropdown-menu-right">
+                            <div class="dropdown-item text-center">
+                                {{ session.get('mentor_name') }}
+                            </div>
                             <a class="dropdown-item" href="#">
-                                Settings
+                                {{ session.get('mentor_email') }}
                             </a>
-                            <a class="dropdown-item" href="{{ url_for('mentor_logout') }}">
+                            <a class="dropdown-item text-center text-primary" href="{{ url_for('mentor_logout') }}">
                                 Logout
                             </a>
                         </div>
@@ -214,7 +250,7 @@
             </div>
         </nav>
     {% endif %}
-
+    
     <div class="container col-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -233,7 +269,7 @@
         <div class="container py-4">
             <div class="d-flex justify-content-between align-items-center">
                 <p class="text-muted mb-0">
-                    © 2025 <a href="https://Mentoroid.in/" target="_blank">Mentoroid</a> All rights reserved.
+                    © 2025 <a href="/" target="_blank">Mentoroid</a> All rights reserved.
                 </p>
                 <div class="d-flex">
                     <a class="text-muted mx-2" href="#">
@@ -258,15 +294,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js">
     </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js">
-    </script>
-    <script>
-        // Simulate user purchase status
-        const userHasPurchased = true; // Change to false to hide ongoing sections
-
-        if (userHasPurchased) {
-            document.getElementById('ongoing-project-section').style.display = 'block';
-            document.getElementById('ongoing-course-section').style.display = 'block';
-        }
     </script>
 </body>
 </html>

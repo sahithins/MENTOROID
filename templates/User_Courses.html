@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+    <main class="mt-4 container">
+        <div>
+            <h5>Enrolled Courses</h5>
+            <br>
+            <table class="table">
+                <thead>
+                    <tr>
+                        {% for key in ['Course Name', 'Mentor', 'Enrollment Date', 'Expiration Date'] %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enroll in enroll_details %}
+                        <tr>
+                            <td>{{ enroll['Course Name'] }}</td>
+                            <td>{{ enroll['Mentor Name'] }}</td>
+                            <td>{{ enroll['Enrollment Date'] }}</td>
+                            <td>{{ enroll['Expiration Date'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock content %}

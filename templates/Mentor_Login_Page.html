@@ -2,15 +2,16 @@
 {% block content %}
     <div class="col-12 row">
         <div class="col-6" style="padding-left: 100px;">
-            <img src="{{ url_for('static', filename='images/02.jpg') }}" class="img-fluid" alt="Register" style="height: 580px; width: 580px;">
+            <img src="{{ url_for('static', filename='images/03.jpg') }}" class="img-fluid" alt="Register" style="height: 580px; width: 580px;">
         </div>
         <div class="container col-4" style="margin-top: 130px;" align="center">
             <div class="card" style="width: 400px;">
                 <h3 class="card-header bg-success text-white">Mentor Login</h3>
                 <div class="card-body">
                     <form id="loginForm", method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="input-group">
-                            <input type="text" id="username" class="form-control" placeholder="Username" name="username" aria-label="Username" required>
+                            <input type="text" id="email" class="form-control" placeholder="Email" name="email" aria-label="Email" required>
                             <span class="input-group-text bg-primary"><i class="bi bi-person-fill text-white"></i></span>
                         </div>
                         <br>
@@ -31,20 +32,20 @@
     <!-- <script>
         document.getElementById("loginForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            var username = document.getElementById("username").value;
+            var email = document.getElementById("email").value;
             var password = document.getElementById("password").value;
 
             // var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-            if (username && password) {
+            if (email && password) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Login Successful',
-                    text: 'Welcome, ' + username + '!'
+                    text: 'Welcome, ' + email + '!'
                 });
             } else {
                 var errorMessage = 'Please ensure the following:\n';
-                if (!username) {
+                if (!email) {
                     errorMessage += ' - Username is required\n';
                 }
                 if (!passwordPattern.test(password)) {
