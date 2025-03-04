@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legacy Agencies</title>
+    <style>
+        /* ✅ General Styling */
+        body {
+            font-family: "Poppins", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #071d35bc;
+            opacity: 0.9;
+        }
+
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 0;
+            transition: background-color 0.4s ease, padding 0.4s ease;
+            z-index: 1000;
+        }
+
+        .main-header.scrolled {
+            background-color: #ffffff;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .logo img {
+            max-height: 50px;
+        }
+
+        .main-nav {
+            flex-grow: 1;
+        }
+
+        .main-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-links {
+            display: flex;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .menu-links li {
+            margin: 0 20px;
+        }
+
+        .menu-links li a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: lighter;
+            font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: 18px;
+            position: relative;
+        }
+
+        .main-header.scrolled .menu-links li a {
+            color: #071d35df;
+        }
+
+        .menu-links li a::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #E1A122;
+            transition: width 0.8s ease;
+        }
+
+        .menu-links li a:hover::after {
+            width: 100%;
+        }
+
+        .get-started a.button {
+            background-color: #E1A122;
+            color: #ffffff;
+            padding: 17px 28px;
+            border-radius: 3px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+            border: 3px solid transparent;
+        }
+
+        .get-started a.button:hover {
+            background-color: #ffffff;
+            border-color: #E1A122;
+            color: #031d39;
+        }
+
+        .menu-icon {
+            cursor: pointer;
+            display: none;
+            padding: 28px 20px;
+            position: relative;
+            user-select: none;
+        }
+
+        .menu-icon .navicon,
+        .menu-icon .navicon:before,
+        .menu-icon .navicon:after {
+            background-color: #E1A122;
+            display: block;
+            height: 2px;
+            position: relative;
+            transition: background .2s ease-out;
+            width: 18px;
+        }
+
+        .menu-icon .navicon:before,
+        .menu-icon .navicon:after {
+            content: '';
+            position: absolute;
+        }
+
+        .menu-icon .navicon:before {
+            top: 5px;
+        }
+
+        .menu-icon .navicon:after {
+            top: -5px;
+        }
+
+        .menu-btn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .main-nav {
+                width: 100%;
+            }
+
+            .menu-icon {
+                display: block;
+                position: absolute;
+                top: 10px;
+                right: 20px;
+                z-index: 100;
+            }
+
+            .main-nav ul {
+                flex-direction: column;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height .2s ease-out;
+                background-color: white;
+                width: 100%;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                padding: 0;
+            }
+
+            .menu-links {
+                flex-direction: column;
+            }
+
+            .main-nav li, .menu-links li {
+                margin: 0;
+                padding: 15px 20px;
+                text-align: center;
+            }
+
+            .main-nav li a {
+                color: #031d39 !important;
+            }
+
+            .menu-btn:checked ~ ul {
+                max-height: 600px;
+            }
+
+            .button {
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 15px;
+                margin: 15px auto;
+                color: white !important;
+            }
+        }
+
+        main {
+            padding: 120px 20px; /* Ensure content is not hidden under header */
+        }
+    </style>
+</head>
+<body class="home">
+
+<header class="main-header">
+    <div class="container">
+        <div class="logo">
+            <a href="https://legacy-agencies.com/home/">
+                <img src="logo.png" alt="Legacy Agencies Logo">
+            </a>
+        </div>
+        <nav class="main-nav">
+            <input class="menu-btn" type="checkbox" id="menu-btn" />
+            <label class="menu-icon" for="menu-btn"><span class="navicon"></span></label>
+            <ul>
+                <div class="menu-links">
+                    <li><a href="https://legacy-agencies.com/our-services/">Our Services</a></li>
+                    <li><a href="https://legacy-agencies.com/case-studies/">Case Studies</a></li>
+                    <li><a href="https://legacy-agencies.com/about-us/">About Us</a></li>
+                    <li><a href="https://legacy-agencies.com/contact-us/">Contact Us</a></li>
+                </div>
+                <div class="get-started">
+                    <a href="https://legacy-agencies.com/schedule-a-consultation/" class="button">Get Started</a>
+                </div>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <h1>Sample Text to Test Scroll Feature.</h1>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+    <p>Scroll down to test the sticky header.</p>
+    <div style="height: 2000px;"></div>
+</main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        window.addEventListener('scroll', function () {
+            let header = document.querySelector('.main-header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Landing Section -->
+<!-- Company Description -->

@@ -36,8 +36,11 @@ class Mentor(db.Document):
     resume_file = db.StringField()
     status = db.BooleanField(default=False)
 
+    def get_resume_url(self):
+        return f"{self.resume_file}" if self.resume_file else None
+
     def __repr__(self):
-        return f"Mentor('{self.fullname}', '{self.email}')"
+        return f"Mentor('{self.fullname}', '{self.email}', '{self.qualification}')"
 
 class Content(db.Document):
     '''
@@ -56,7 +59,6 @@ class Content(db.Document):
 class Courses(db.Document):
     '''
     Creates Courses table with columns course_name, mentor_name, summary, course_image, 
-    course_price
     '''
     course_name = db.StringField(required=True)
     mentor_email = db.StringField()
@@ -64,7 +66,7 @@ class Courses(db.Document):
     course_image = db.StringField()
 
     def __repr__(self):
-        return f"Courses('{self.course_name}', '{self.course_price}', '{self.summary}')"
+        return f"Courses('{self.course_name}', '{self.summary}')"
 
 class Enrollment(db.Document):
     '''

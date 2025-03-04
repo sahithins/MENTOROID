@@ -37,7 +37,7 @@
                                     <label for="select-course">Select course</label>
                                     <select id="select-course" name="coursename" class="form-control" required>
                                         <option>Select course</option>
-                                        {% for course in courses.objects.all() %}
+                                        {% for course in courses %}
                                             <option value="{{ course.course_name }}">{{ course.course_name }}</option>
                                         {% endfor %}
                                     </select>

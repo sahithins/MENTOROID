@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experience | Legacy Agencies</title>
+    <style>
+        /* ✅ General Styling */
+        body {
+            font-family: "Poppins", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1A2634;
+            color: white;
+        }
+
+        /* ✅ Experience Section */
+        .experience-section {
+            position: relative;
+            text-align: center;
+            padding: 100px 20px 80px;
+            background: url('Background_Image.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 38, 52, 0.90);
+        }
+
+        .container {
+            position: relative;
+            max-width: 1200px;
+            margin: auto;
+            z-index: 2;
+            text-align: center;
+        }
+
+        /* ✅ Title Styling */
+        .title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #FFFFFF;
+            max-width: 900px;
+            margin: 0 auto 15px;
+            line-height: 1.2;
+        }
+
+        /* ✅ Yellow Divider */
+        .divider {
+            width: 80px;
+            height: 4px;
+            background: #e1a122;
+            margin: 15px auto 30px;
+        }
+
+        /* ✅ Fixed Description for 3 Lines */
+        .description {
+            font-size: 16px;
+            font-family: "Open Sans", sans-serif;
+            max-width: 700px;
+            margin: 0 auto 35px;
+            line-height: 1.9;
+            text-align: center;
+            color: #F8F9FA;
+        }
+
+        /* ✅ Stats Section with Responsive Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 boxes in a row for large screens */
+            gap: 20px;
+            margin-top: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .stat-box {
+            background: #162C44;
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            height: 140px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-box img {
+            width: 45px;
+            height: 45px;
+            margin-right: 15px;
+        }
+
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .counter-container {
+            font-size: 38px;
+            font-weight: bold;
+            color: white;
+            line-height: 1.1;
+        }
+
+        .stat-title {
+            font-size: 17px;
+            margin-top: 6px;
+            color: white;
+        }
+
+        /* ✅ Responsive Fixes (Based on Original Website) */
+        @media (max-width: 1024px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr); /* 2x2 grid */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr); /* 2x2 grid remains */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-container {
+                grid-template-columns: 1fr; /* Single column for very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="experience-section">
+        <div class="overlay"></div>
+        <div class="container">
+            <h2 class="title">50+ Years of Experience in Small Businesses</h2>
+            <div class="divider"></div>
+            
+            <p class="description">
+                At Legacy Agencies, we stand firmly behind our convictions, fueled by a deep commitment to 
+                empowering small and medium-sized businesses to reshape the healthcare landscape. 
+                Our beliefs serve as the guiding principles that drive our mission and define our unique approach.
+            </p>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <img src="https://legacy-agencies.com/wp-content/uploads/2021/08/business-partner-icon.png" alt="Business Partner">
+                    <div class="stat-content">
+                        <div class="counter-container"><span class="counter" data-target="900">0</span>+</div>
+                        <h3 class="stat-title">Businesses Helped</h3>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <img src="https://legacy-agencies.com/wp-content/uploads/2021/08/happy-clients-icon.png" alt="Happy Clients">
+                    <div class="stat-content">
+                        <div class="counter-container"><span class="counter" data-target="50000">0</span>+</div>
+                        <h3 class="stat-title">Employees Helped</h3>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <img src="https://legacy-agencies.com/wp-content/uploads/2021/08/award-win-icon.png" alt="Awards Won">
+                    <div class="stat-content">
+                        <div class="counter-container"><span class="counter" data-target="150">0</span>+</div>
+                        <h3 class="stat-title">Awards Won</h3>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <img src="https://legacy-agencies.com/wp-content/uploads/2024/02/rev-icon-3.png" alt="Revenue Saved">
+                    <div class="stat-content">
+                        <div class="counter-container">$<span class="counter" data-target="250">0</span>m+</div>
+                        <h3 class="stat-title">Revenue Saved</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const counters = document.querySelectorAll(".counter");
+
+            counters.forEach(counter => {
+                counter.innerText = "0";
+                function updateCount() {
+                    const target = +counter.getAttribute("data-target");
+                    let count = +counter.innerText.replace(/\D/g, '');
+                    if (count < target) {
+                        counter.innerText = Math.min(count + Math.ceil(target / 100), target).toLocaleString();
+                        setTimeout(updateCount, 15);
+                    }
+                }
+                updateCount();
+            });
+        });
+    </script>
+</body>
+</html>

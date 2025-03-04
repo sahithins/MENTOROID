@@ -8,6 +8,7 @@ import secrets, os, sys, zipfile, subprocess
 from werkzeug.utils import secure_filename
 from forms import LoginForm
 import numpy as np
+from markupsafe import Markup
 from datetime import datetime, timedelta
 
 try:
@@ -66,9 +67,27 @@ class SecureModelView(ModelView):
                         </div>
                     </div>''')
 
+class MentorModelView(SecureModelView):
+    column_list = ('fullname', 'email', 'phonenumber', 'image_file', 'qualification', 'experience', 'linkedin', 'resume_file', 'status')
+
+    def _resume_file_formatter(view, context, model, name):
+        if model.resume_file:
+            return Markup(f'''<a class='btn btn-primary' href="/Download?filename={model.get_resume_url()}">Resume</a>''')
+        return 'No file'
+    
+    def _linkedin_formatter(view, context, model, name):
+        if model.linkedin:
+            return Markup(f'''<a class='btn btn-primary' href="{model.linkedin}" target="__blank">Linkedin Link</a>''')
+        return 'No link'
+
+    column_formatters = {
+        'resume_file': _resume_file_formatter,
+        'linkedin': _linkedin_formatter,
+    }
+
 # Add views for your models
 admin.add_view(SecureModelView(User))
-admin.add_view(SecureModelView(Mentor))
+admin.add_view(MentorModelView(Mentor))
 admin.add_view(SecureModelView(Content))
 admin.add_view(SecureModelView(Courses))
 admin.add_view(SecureModelView(Enrollment))
@@ -178,7 +197,7 @@ def register():
                 flash('Email already exists. Please choose a different email.', 'info')
                 return redirect(url_for('register'))
         else:
-            existing_mentor = Mentor.objects(email=email).first()
+            existing_mentor = Mentor.objects(email=email).first()  # Query for existing mentor
             if existing_mentor:
                 flash('Email already exists. Please choose a different email.', 'info')
                 return redirect(url_for('register'))
@@ -196,10 +215,12 @@ def register():
             filename = "default.jpg"
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
+
         if file:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
+
         if role == 'User':
             new_user = User(
                 fullname=fullname,
@@ -226,8 +247,11 @@ def register():
                 resume_file=resume_file_path
             )
             new_mentor.save()  # Save the user to MongoDB
-            flash('Registration successful! Admin will validate and getback to you.', 'success')
+            flash('Registration successful! Admin will validate and get back to you.', 'success')
             return redirect(url_for('mentor'))
+        else:
+            flash(f'Invalid form data{role}', 'danger')
+            render_template("Register_Page.html", title="Register Page")
 
     return render_template("Register_Page.html", title="Register Page")
 
@@ -444,19 +468,19 @@ def mentor_dashboard():
             )
             new_content.save()  # Save the user to MongoDB
             flash('Upload successful!', 'success')
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
         except:
             new_course = Courses(
                 course_name=course_name,
                 mentor_email = session['mentor_email'],
                 summary=summary,
-                course_image=file_path,
+                course_image=file_path
             )
             new_course.save()  # Save the user to MongoDB
             flash('New course added successfully!', 'success')
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
 
-    return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+    return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
 
 @app.route("/Content_Upload", methods = ["GET", "POST"])
 @role_required('mentor')
@@ -543,7 +567,7 @@ def download_zip():
             if os.path.exists(file_name):
                 zipf.write(file_name, os.path.basename(file_name))
             else:
-                return f"File not found {filename}", 404
+                return f"File not found {filname}", 404
 
     return send_file(zip_filename, as_attachment=True)
 
