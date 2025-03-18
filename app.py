@@ -432,6 +432,7 @@ def mentor():
 @app.route("/Mentor_Dashboard", methods=["GET", "POST"])
 @role_required('mentor')
 def mentor_dashboard():
+    categories = ['IT & Software', 'Data Science and AI', 'Business & Finance', 'Graphic Design & Multimedia', 'Marketing & Sales', 'Personal Development',  'Health & Madicine', 'Teaching & Academics']
     if request.method == "POST":
         course_name = request.form['coursename']
         try:
