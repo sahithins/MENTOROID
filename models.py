@@ -61,6 +61,7 @@ class Courses(db.Document):
     Creates Courses table with columns course_name, mentor_name, summary, course_image, 
     '''
     course_name = db.StringField(required=True)
+    course_category = db.StringField()
     mentor_email = db.StringField()
     summary = db.StringField(required=True)
     course_image = db.StringField()

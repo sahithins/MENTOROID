@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block content %}
+    <br>
+    <main class="container">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card" style="height: 100vh;">
+                        <div class="card-body">
+                            <h4 class="card-title">Add Course</h4>
+                            <form method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="form-group">
+                                    <label for="select--category">Select Category</label>
+                                    <select id="select-category" name="coursecategory" class="form-control" required>
+                                        <option>Select Category</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category }}">{{ category }}</option>
+                                        {% endfor %}                                    
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="course-name">Course name</label>
+                                    <input type="text" id="course-name" class="form-control" name="coursename" placeholder="Course name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="summary">Summary</label>
+                                    <textarea id="summary" class="form-control" rows="4" name="summary" placeholder="Summary" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="upload-file">Upload Image</label>
+                                    <input type="file" id="upload-image" name="imagefile" class="form-control-file" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Add</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>      
+                <div class="col-lg-6 mb-4">
+                    <div class="card" style="height: 100vh;">
+                        <div class="card-body">
+                            <h4 class="card-title">Add Content</h4>
+                            <form method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="form-group">
+                                    <label for="select-course">Select course</label>
+                                    <select id="select-course" name="coursename" class="form-control" required>
+                                        <option>Select course</option>
+                                        {% for course in courses %}
+                                            <option value="{{ course.course_name }}">{{ course.course_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="select-content-type">Select File Type</label>
+                                    <select id="select-content type" name="contenttype" class="form-control" required>
+                                        <option value="Video">Upload Video</option>
+                                        <option value="Material">Upload Material</option>
+                                        <!-- Add more options as needed -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input type="text" id="title" class="form-control" name="title" placeholder="Title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea id="description" class="form-control" rows="2" name="description"
+                                        placeholder="Description" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="upload-file">Upload file</label>
+                                    <input type="file" id="upload-file" name="file" class="form-control-file" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock content %}

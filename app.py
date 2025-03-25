@@ -94,6 +94,10 @@ admin.add_view(SecureModelView(Enrollment))
 admin.add_view(SecureModelView(Feedbacks))
 
 RANDOM_COLOR = f"rgb({np.random.randint(100,180)}, {np.random.randint(100,180)}, {np.random.randint(100,180)})"
+course_categories = ['IT & Software Development', 'Data Science & AI', 'Business & Finance', 'Marketing & Sales', 
+                         'Graphic Design & Multimedia', 'Engineering & Architecture', 'Health & Medicine', 
+                         'Language & Communication', 'Personal Development']
+
 
 @app.before_request
 def before_request():
@@ -421,7 +425,7 @@ def mentor():
                 session['mentor_email'] = email
                 session['profile_picture'] = mentor.image_file
                 flash("Login Successful", "success")
-                return redirect("/Mentor_Dashboard")
+                return redirect("/Mentor_Course_Manager")
             else:
                 flash("Your account is not active. Please contact admin.", "danger")
         else:
@@ -429,31 +433,31 @@ def mentor():
             return redirect("/Mentor_Login")
     return render_template("Mentor_Login_Page.html", title = "Mentor Login")
 
-@app.route("/Mentor_Dashboard", methods=["GET", "POST"])
+@app.route("/Mentor_Course_Manager", methods=["GET", "POST"])
 @role_required('mentor')
-def mentor_dashboard():
-    categories = ['IT & Software', 'Data Science and AI', 'Business & Finance', 'Graphic Design & Multimedia', 'Marketing & Sales', 'Personal Development',  'Health & Madicine', 'Teaching & Academics']
+def mentor_course_manager():
     if request.method == "POST":
         course_name = request.form['coursename']
         try:
             file_type = request.form['contenttype']
         except:
             summary = request.form['summary']
+            course_category = request.form['coursecategory']
             if 'imagefile' not in request.files:
                 flash('No file part')
-                return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+                return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
             file = request.files['imagefile']
         else:
             title = request.form['title']
             description = request.form['description']
             if 'file' not in request.files:
                 flash('No file part')
-                return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+                return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
             file = request.files['file']
 
         if file.filename == '':
             flash('No selected file')
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses)
+            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
         if file:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER_1'], filename)
@@ -469,19 +473,20 @@ def mentor_dashboard():
             )
             new_content.save()  # Save the user to MongoDB
             flash('Upload successful!', 'success')
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
+            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
         except:
             new_course = Courses(
                 course_name=course_name,
+                course_category=course_category,
                 mentor_email = session['mentor_email'],
                 summary=summary,
                 course_image=file_path
             )
             new_course.save()  # Save the user to MongoDB
             flash('New course added successfully!', 'success')
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
+            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
 
-    return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=Courses.objects(mentor_email=session['mentor_email']))
+    return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
 
 @app.route("/Content_Upload", methods = ["GET", "POST"])
 @role_required('mentor')
@@ -521,12 +526,21 @@ def content_upload():
 
     return render_template("Content_Upload.html", title = "Content Upload", courses=Courses, course=course, contents=contents)
 
-@app.route("/Mentor_Courses")
+@app.route("/Mentor_Dashboard", methods=["GET", "POST"])
 @role_required('mentor')
-def mentor_courses():
+def mentor_dashboard():
     courses = Courses.objects(mentor_email = session['mentor_email'])
-    return render_template("Mentor_Courses.html", title = "Mentor Courses", courses=courses, content=Content)
-
+    if request.method == 'POST':
+        selected_category = request.form['coursecategory']
+        if selected_category != '0':
+            courses = Courses.objects(course_category=selected_category, mentor_email = session['mentor_email'])
+            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+        else:
+            courses = Courses.objects(mentor_email = session['mentor_email'])
+            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+    return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+        
+            
 @app.route("/Enrolled_Users")
 @role_required('mentor')
 def enrolled_users():
@@ -568,7 +582,7 @@ def download_zip():
             if os.path.exists(file_name):
                 zipf.write(file_name, os.path.basename(file_name))
             else:
-                return f"File not found {filname}", 404
+                return f"File not found {file_name}", 404
 
     return send_file(zip_filename, as_attachment=True)
 
