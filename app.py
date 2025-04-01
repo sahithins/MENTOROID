@@ -286,7 +286,17 @@ def user_dashboard():
     session.pop('search_materials', None)
     session.pop('search_item', None)
     enrolled_courses, _ = get_enrolled_details()
-    return render_template("User_Dashboard.html", title = "User Dashboard", courses=Courses, np = np.random, enrolled_courses=enrolled_courses)
+    
+    # Fetch actual courses from database
+    all_courses = Courses.objects.all()  # This returns queryset (iterable)
+    
+    return render_template(
+        "User_Dashboard.html", 
+        title="User Dashboard", 
+        courses=all_courses,  # Pass queried results
+        np=np.random,
+        enrolled_courses=enrolled_courses
+    )
 
 @app.route("/User_Profile", methods = ['GET', 'POST'])
 @role_required('user')
@@ -338,23 +348,22 @@ def my_courses():
 @role_required('user')
 def feedback():
     if request.method == "POST":
-        user_name = request.form['username']
-        mentor_name = request.form['mentorname']
+        # Get course category from the selected course
         course_name = request.form['coursename']
-        rating = request.form['rating']
-        feedback = request.form['feedback']
-        suggestions = request.form['suggestions']
-        user_email = session['user_email']
+        course = Courses.objects(course_name=course_name).first()
+        
         new_feedback = Feedbacks(
-                                user_name=user_name,
-                                user_email=user_email,
-                                mentor_name=mentor_name,
-                                course_name=course_name,
-                                rating=rating,
-                                feedback=feedback,
-                                suggestions=suggestions
-                            )
+            user_name=request.form['username'],
+            user_email=session['user_email'],
+            mentor_name=request.form['mentorname'],
+            course_name=course_name,
+            course_category=course.course_category,  # Add this line
+            rating=int(request.form['rating']),
+            feedback=request.form['feedback'],
+            suggestions=request.form['suggestions']
+        )
         new_feedback.save()
+        # ... rest of your code ...
         flash('Thank you for your feedback! Your insights are invaluable to us.', 'info')
         return redirect(url_for('user_dashboard'))
     return render_template("Feedback_Page.html", title="Feedback", courses=Courses, mentors=Mentor)
@@ -445,19 +454,19 @@ def mentor_course_manager():
             course_category = request.form['coursecategory']
             if 'imagefile' not in request.files:
                 flash('No file part')
-                return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
+                return render_template("Mentor_Course_Manager.html", title="Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']), categories=course_categories)
             file = request.files['imagefile']
         else:
             title = request.form['title']
             description = request.form['description']
             if 'file' not in request.files:
                 flash('No file part')
-                return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
+                return render_template("Mentor_Course_Manager.html", title="Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']), categories=course_categories)
             file = request.files['file']
 
         if file.filename == '':
             flash('No selected file')
-            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses)
+            return render_template("Mentor_Course_Manager.html", title="Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']), categories=course_categories)
         if file:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER_1'], filename)
@@ -467,26 +476,41 @@ def mentor_course_manager():
             new_content = Content(
                 course_name=course_name,
                 title=title,
-                file_type = file_type,
+                file_type=file_type,
                 description=description,
                 upload_file=file_path
             )
-            new_content.save()  # Save the user to MongoDB
+            new_content.save()
             flash('Upload successful!', 'success')
-            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
+            return render_template(
+                "Mentor_Course_Manager.html", 
+                title="Mentor Course Manager", 
+                courses=Courses.objects(mentor_email=session['mentor_email']), 
+                categories=course_categories
+            )
         except:
             new_course = Courses(
                 course_name=course_name,
                 course_category=course_category,
-                mentor_email = session['mentor_email'],
+                mentor_email=session['mentor_email'],
                 summary=summary,
                 course_image=file_path
             )
-            new_course.save()  # Save the user to MongoDB
+            new_course.save()
             flash('New course added successfully!', 'success')
-            return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
+            return render_template(
+                "Mentor_Course_Manager.html", 
+                title="Mentor Course Manager", 
+                courses=Courses.objects(mentor_email=session['mentor_email']), 
+                categories=course_categories
+            )
 
-    return render_template("Mentor_Course_Manager.html", title = "Mentor Course Manager", courses=Courses.objects(mentor_email=session['mentor_email']))
+    return render_template(
+        "Mentor_Course_Manager.html", 
+        title="Mentor Course Manager", 
+        courses=Courses.objects(mentor_email=session['mentor_email']), 
+        categories=course_categories
+    )
 
 @app.route("/Content_Upload", methods = ["GET", "POST"])
 @role_required('mentor')
@@ -529,16 +553,16 @@ def content_upload():
 @app.route("/Mentor_Dashboard", methods=["GET", "POST"])
 @role_required('mentor')
 def mentor_dashboard():
-    courses = Courses.objects(mentor_email = session['mentor_email'])
+    courses = Courses.objects(mentor_email=session['mentor_email'])
     if request.method == 'POST':
         selected_category = request.form['coursecategory']
         if selected_category != '0':
-            courses = Courses.objects(course_category=selected_category, mentor_email = session['mentor_email'])
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+            courses = Courses.objects(course_category=selected_category, mentor_email=session['mentor_email'])
+            return render_template("Mentor_Dashboard.html", title="Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
         else:
-            courses = Courses.objects(mentor_email = session['mentor_email'])
-            return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
-    return render_template("Mentor_Dashboard.html", title = "Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+            courses = Courses.objects(mentor_email=session['mentor_email'])
+            return render_template("Mentor_Dashboard.html", title="Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
+    return render_template("Mentor_Dashboard.html", title="Mentor Dashboard", courses=courses, content=Content, categories=course_categories)
         
             
 @app.route("/Enrolled_Users")
@@ -550,9 +574,17 @@ def enrolled_users():
 @app.route("/View_Feedback")
 @role_required('mentor')
 def view_feedback():
-    mentor = Mentor.objects(email=session['mentor_email']).first()
-    feedbacks = Feedbacks.objects(mentor_name=mentor.fullname)
-    return render_template('View_Feedback.html', title = "View Feedback", feedbacks=feedbacks)
+    grouped_feedbacks = {}
+    for category in course_categories:
+        # Use the correct field name from Feedbacks model
+        category_feedbacks = Feedbacks.objects(course_category=category)
+        if category_feedbacks:
+            grouped_feedbacks[category] = category_feedbacks
+            
+    return render_template('View_Feedback.html',
+        grouped_feedbacks=grouped_feedbacks,
+        categories=course_categories
+    )
 
 @app.route("/Mentor_Logout")
 def mentor_logout():

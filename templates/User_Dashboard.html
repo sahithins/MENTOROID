@@ -3,63 +3,178 @@
     <main class="container" style="max-width: 1200px; padding-left: 100px; padding-right: 100px;">
         <div class="row">
             <div class="col-md-12">
-                <h2 class="h4 font-weight-semibold mb-4 text-center">All Courses</h2>  <!-- Centered Heading -->
-                <div class="input-group mb-4">
-                    <input type="text" class="form-control" name="search" id="search_course" placeholder="Search for anything">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="button" onclick="searchCourse()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+                <h2 class="h4 font-weight-semibold mb-4 text-center">All Courses</h2>
+                
+                <!-- Category Filter Buttons -->
+                <div class="category-filter mb-4 text-center">
+                    <button class="btn btn-filter active" data-category="all">All</button>
+                    <button class="btn btn-filter" data-category="programming">Programming</button>
+                    <button class="btn btn-filter" data-category="web">Web Development</button>
+                    <button class="btn btn-filter" data-category="database">Database</button>
+                    <button class="btn btn-filter" data-category="data-science">Data Science</button>
                 </div>
+
                 <div class="row">
-                    {% if session.get('search_item') %}
-                        {% for course in courses %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card card-custom border-primary" style="background-color: rgb({{np.randint(100, 256)}}, {{np.randint(170,256)}}, {{np.randint(180,256)}});">
-                                <img alt="Image for Course 1" class="card-img-top" height="150"
-                                    src="{{ course.course_image }}"
-                                    width="300" />
-                                <div class="card-body">
-                                    <h5 class="card-title" id="coursename" name="coursename">{{ course.course_name }}</h5>
-                                    <p class="card-text">• {{ course.summary }}</p>
-                                    {% if course.course_name in enrolled_courses %}
-                                        <p class="btn btn-dark">Enrolled</p>
-                                    {% else %}
-                                        <a href="{{ url_for('enroll', coursename=course.course_name) }}" class="btn btn-dark" onclick="getEnrollingCourse()">Enroll</a>
-                                    {% endif %}                                
+                    {% for course in courses %}
+                    <div class="col-md-4 mb-4 d-flex align-items-stretch course-card" data-categories="{{ course.categories|default('all') }}">
+                        <div class="card card-custom border-primary w-100">
+                            <img alt="Course Image" class="card-img-top" height="150"
+                                src="{{ course.course_image }}"
+                                width="300" style="object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ course.course_name }}</h5>
+                                <div class="card-text course-description">
+                                    <div class="short-content">
+                                        <p>{{ course.summary|truncate(100) }}</p>
+                                    </div>
+                                    {% if course.summary|length > 100 %}
+                                        <a href="#" class="view-more">...view more</a>
+                                        <div class="full-content">
+                                            <p>{{ course.summary }}</p>
+                                        </div>
+                                    {% endif %}
                                 </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        {% for course in courses.objects.all() %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card card-custom border-primary" style="background-color: rgb({{np.randint(100, 256)}}, {{np.randint(170,256)}}, {{np.randint(180,256)}});">
-                                <img alt="Image for Course 1" class="card-img-top" height="150"
-                                    src="{{ course.course_image }}"
-                                    width="300" />
-                                <div class="card-body">
-                                    <h5 class="card-title" id="coursename" name="coursename">{{ course.course_name }}</h5>
-                                    <p class="card-text">{{ course.summary }}</p>
+                                <div class="mt-auto">
                                     {% if course.course_name in enrolled_courses %}
                                         <p class="btn btn-dark">Enrolled</p>
                                     {% else %}
-                                        <a href="{{ url_for('enroll', coursename=course.course_name) }}" class="btn btn-dark" onclick="getEnrollingCourse()">Enroll</a>
+                                        <a href="{{ url_for('enroll', coursename=course.course_name) }}" 
+                                           class="btn btn-dark">Enroll</a>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
-                    {% endif %}
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </main>
+
     <script>
-        function searchCourse() {
-            const query = document.getElementById('search_course').value;
-            window.location.href = `/search?search=${encodeURIComponent(query)}`;
-        }
+        // Category filtering functionality
+        document.querySelectorAll('.btn-filter').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.btn-filter').forEach(btn => 
+                    btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                const selectedCategory = button.dataset.category;
+
+                // Filter courses
+                document.querySelectorAll('.course-card').forEach(card => {
+                    const categories = card.dataset.categories.split(' ');
+                    if (selectedCategory === 'all' || categories.includes(selectedCategory)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Fixed view more functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(e) {
+                if(e.target.classList.contains('view-more')) {
+                    e.preventDefault();
+                    const container = e.target.closest('.course-description');
+                    const short = container.querySelector('.short-content');
+                    const full = container.querySelector('.full-content');
+                    const link = e.target;
+                    
+                    if(full.style.display === 'none' || !full.style.display) {
+                        short.style.display = 'none';
+                        full.style.display = 'block';
+                        link.textContent = 'view less';
+                    } else {
+                        short.style.display = 'block';
+                        full.style.display = 'none';
+                        link.textContent = '...view more';
+                    }
+                }
+            });
+        });
     </script>
+
+    <style>
+        /* Category filter styling */
+        .category-filter {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-filter {
+            padding: 8px 20px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: #f8f9fa;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        /* Card styling */
+        .card {
+            min-height: 400px; /* Fixed minimum height */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-description {
+            flex: 1;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .short-content {
+            display: block;
+        }
+
+        .full-content {
+            display: none;
+        }
+
+        .view-more {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: white;
+            padding-left: 5px;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .view-more:hover {
+            text-decoration: underline;
+        }
+
+        .btn-dark {
+            background-color: #2c3e50;
+            border: none;
+            padding: 8px 20px;
+            margin-top: auto;
+        }
+    </style>
 {% endblock content %}

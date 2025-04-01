@@ -1,29 +1,88 @@
 {% extends "layout.html" %}
 {% block content %}
-    <main class="mt-4 container">
-        <div>
-            <h5>All Feedbacks</h5>
-            <br>
-            <table class="table">
-                <thead>
-                    <tr>
-                        {% for key in ['User Name', 'Course Name', 'Rating', 'Feedback', 'Suggestions'] %}
-                            <th>{{ key }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for feedback in feedbacks %}
-                        <tr>
-                            <td>{{ feedback.user_name }}</td>
-                            <td>{{ feedback.course_name }}</td>
-                            <td>{{ feedback.rating }}</td>
-                            <td>{{ feedback.feedback }}</td>
-                            <td>{{ feedback.suggestions }}</td>
-                        </tr>
+<main class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-4">📚 Course Feedback by Category</h4>
+            
+            <!-- Category Filter -->
+            <div class="mb-4">
+                <select class="form-control" id="categoryFilter" style="max-width: 300px;">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
+                </select>
+            </div>
+
+            <!-- Category Sections -->
+            {% for category, feedbacks_in_category in grouped_feedbacks.items() %}
+            <div class="category-section mb-5" data-category="{{ category }}">
+                <h5 class="mb-3 text-primary">{{ category }}</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Mentor</th>
+                                <th>Rating</th>
+                                <th>Feedback</th>
+                                <th>Suggestions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in feedbacks_in_category %}
+                            <tr>
+                                <td>{{ feedback.course_name }}</td>
+                                <td>{{ feedback.mentor_name }}</td>
+                                <td>
+                                    <div class="star-rating">
+                                        {% for i in range(feedback.rating) %}
+                                        <i class="fas fa-star text-warning"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - feedback.rating) %}
+                                        <i class="fas fa-star text-secondary"></i>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>{{ feedback.feedback }}</td>
+                                <td>{{ feedback.suggestions or 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-    </main>
-{% endblock content %}
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    
+    categoryFilter.addEventListener('change', function() {
+        const selectedCategory = this.value;
+        document.querySelectorAll('.category-section').forEach(section => {
+            if(selectedCategory === "" || section.dataset.category === selectedCategory) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.category-section {
+    border-left: 3px solid #007bff;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+.star-rating { font-size: 1.1rem; }
+.table-hover tbody tr:hover { background-color: #f8f9fa; }
+.text-primary { color: #007bff !important; }
+</style>
+{% endblock %}

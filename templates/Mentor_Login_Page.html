@@ -1,62 +1,107 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="col-12 row">
-        <div class="col-6" style="padding-left: 100px;">
-            <img src="{{ url_for('static', filename='images/02.jpg') }}" class="img-fluid" alt="Register" style="height: 580px; width: 580px;">
+    <style>
+        body {
+            background: linear-gradient(rgba(20, 30, 48, 0.85), rgba(88, 143, 206, 0.95)), 
+                        url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .login-container {
+            display: flex;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px 200px;
+        }
+        
+        .login-image {
+            flex: 1;
+            padding-right: 50px;
+        }
+        
+        .login-image img {
+            height: 580px;
+            width: 580px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
+        }
+        
+        .login-form {
+            flex: 0 0 400px;
+            margin-top: -50px; /* This moves the form upward */
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(to right, #28a745, #218838);
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group-text {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, #28a745, #218838);
+            border: none;
+            width: 100%;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+
+    <div class="login-container">
+        <div class="login-image">
+            <img src="{{ url_for('static', filename='images/02.jpg') }}" alt="Mentor Login">
         </div>
-        <div class="container col-4" style="margin-top: 130px;" align="center">
-            <div class="card" style="width: 400px;">
-                <h3 class="card-header bg-success text-white">Mentor Login</h3>
+        
+        <div class="login-form">
+            <div class="card">
+                <h3 class="card-header">Mentor Login</h3>
                 <div class="card-body">
-                    <form id="loginForm", method="POST">
+                    <form id="loginForm" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="input-group">
-                            <input type="text" id="email" class="form-control" placeholder="Email" name="email" aria-label="Email" required>
-                            <span class="input-group-text bg-primary"><i class="bi bi-person-fill text-white"></i></span>
+                            <input type="text" id="email" class="form-control" placeholder="Email" name="email" required>
+                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
                         </div>
-                        <br>
                         <div class="input-group">
-                            <input type="password" id="password" class="form-control" placeholder="Password" name="password" aria-label="Password" required>
-                            <span class="input-group-text bg-primary"><i class="bi bi-lock-fill text-white"></i></span>
+                            <input type="password" id="password" class="form-control" placeholder="Password" name="password" required>
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                         </div>
-                        <br>
-                        <div style="padding-top: 5px;">
-                            <input class="btn btn-success" type="submit" value="Submit">
+                        <div style="padding-top: 10px;">
+                            <button type="submit" class="btn btn-success">Submit</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <br>
-    <!-- <script>
-        document.getElementById("loginForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            var email = document.getElementById("email").value;
-            var password = document.getElementById("password").value;
-
-            // var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-            if (email && password) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Login Successful',
-                    text: 'Welcome, ' + email + '!'
-                });
-            } else {
-                var errorMessage = 'Please ensure the following:\n';
-                if (!email) {
-                    errorMessage += ' - Username is required\n';
-                }
-                if (!passwordPattern.test(password)) {
-                    errorMessage += ' - Password must be at least 8 characters long, include one uppercase letter, one number, and one special character\n';
-                }
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Input',
-                    text: errorMessage
-                });
-            }
-        });
-    </script> -->
 {% endblock content %}

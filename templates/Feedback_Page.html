@@ -6,28 +6,38 @@
                 <h4 class="card-title">User Feedback Form</h4>
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <!-- Hidden input for course category -->
+                    <input type="hidden" id="courseCategory" name="course_category" value="">
+                    
                     <div class="form-group">
                         <label for="userName">User Name</label>
-                        <input type="text" class="form-control" id="userName" name="username" placeholder="Enter your name" required>
+                        <input type="text" class="form-control" id="userName" name="username" 
+                               placeholder="Enter your name" required>
                     </div>
+                    
                     <div class="form-group">
                         <label for="mentorName">Mentor Name</label>
                         <select class="form-control" id="mentorName" name="mentorname" required>
-                            <option>Select a mentor</option>
+                            <option value="">Select a mentor</option>
                             {% for mentor in mentors.objects.all() %}
                                 <option value="{{ mentor.fullname }}">{{ mentor.fullname }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label for="courseName">Course Name</label>
                         <select class="form-control" id="courseName" name="coursename" required>
-                            <option>Select a course</option>
+                            <option value="">Select a course</option>
                             {% for course in courses.objects.all() %}
-                                <option value="{{ course.course_name }}">{{ course.course_name }}</option>
+                                <option value="{{ course.course_name }}" 
+                                        data-category="{{ course.course_category }}">
+                                    {{ course.course_name }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label for="rating">Rating</label>
                         <select class="form-control" id="rating" name="rating" required>
@@ -39,14 +49,19 @@
                             <option value="5">5 - Excellent</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label for="feedback">Feedback</label>
-                        <textarea class="form-control" id="feedback" rows="5" name="feedback" placeholder="Enter your feedback" required></textarea>
+                        <textarea class="form-control" id="feedback" rows="5" name="feedback" 
+                                  placeholder="Enter your feedback" required></textarea>
                     </div>
+                    
                     <div class="form-group">
                         <label for="suggestions">Suggestions for Improvement</label>
-                        <textarea class="form-control" id="suggestions" rows="5" name="suggestions" placeholder="Enter your suggestions"></textarea>
+                        <textarea class="form-control" id="suggestions" rows="5" name="suggestions" 
+                                  placeholder="Enter your suggestions"></textarea>
                     </div>
+                    
                     <div class="text-right">
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
@@ -54,4 +69,26 @@
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const courseSelect = document.getElementById('courseName');
+        const categoryInput = document.getElementById('courseCategory');
+        
+        courseSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if(selectedOption.value !== "") {
+                categoryInput.value = selectedOption.dataset.category;
+            } else {
+                categoryInput.value = "";
+            }
+        });
+    });
+    </script>
+
+    <style>
+    .card-title { margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    textarea { resize: vertical; }
+    </style>
 {% endblock content %}

@@ -1,14 +1,9 @@
-
 from flask_mongoengine import MongoEngine
 from datetime import datetime, timedelta
-# from mongoengine import CASCADE
+
 db = MongoEngine()
 
-
 class User(db.Document):
-    '''
-    Creates User table with columns fullname, password, age, phonenumber, email, address, image_file
-    '''
     fullname = db.StringField(required=True)
     password = db.StringField(required=True)
     age = db.IntField(required=True)
@@ -16,15 +11,12 @@ class User(db.Document):
     email = db.StringField(required=True, unique=True)
     address = db.StringField(required=True)
     image_file = db.StringField(default="default.jpg")
-    role = db.StringField(default="user")  # insert here manually in database for admin role
+    role = db.StringField(default="user")
 
     def __repr__(self):
         return f"User('{self.fullname}', '{self.email}', '{self.image_file}')"
 
 class Mentor(db.Document):
-    '''
-    Mentor's Login credentials
-    '''
     fullname = db.StringField(required=True)
     password = db.StringField(required=True)
     email = db.StringField(required=True, unique=True)
@@ -43,9 +35,6 @@ class Mentor(db.Document):
         return f"Mentor('{self.fullname}', '{self.email}', '{self.qualification}')"
 
 class Content(db.Document):
-    '''
-    Creates Materials table with columns course_name, title, file_type, description, upload_file
-    '''
     course_name = db.StringField(required=True)
     title = db.StringField(required=True)
     file_type = db.StringField(required=True)
@@ -57,9 +46,6 @@ class Content(db.Document):
         return f"Content('{self.course_name}', '{self.title}', '{self.description}')"
 
 class Courses(db.Document):
-    '''
-    Creates Courses table with columns course_name, mentor_name, summary, course_image, 
-    '''
     course_name = db.StringField(required=True)
     course_category = db.StringField()
     mentor_email = db.StringField()
@@ -70,23 +56,18 @@ class Courses(db.Document):
         return f"Courses('{self.course_name}', '{self.summary}')"
 
 class Enrollment(db.Document):
-    '''
-    Creates Enrollment table to track which users are enrolled in which courses
-    '''
     user_id = db.StringField(required=True)
     course_id = db.StringField()
     enrollment_date = db.DateTimeField(default=datetime.utcnow)
     expire_date = db.DateTimeField()
-    status = db.StringField(default="active")  # e.g., active, completed, dropped
+    status = db.StringField(default="active")
 
     def __repr__(self):
         return f"Enrollment('user_id: {self.user_id}', 'course_id: {self.course_id}', 'status: {self.status}')"
     
     @classmethod
     def update_enrollment_status(cls):
-        # Get the current date and time
         now = datetime.utcnow()
-        # Find all enrollments where the expire_date has passed
         expired_enrollments = cls.objects(expire_date__lt=now)
         for enrollment in expired_enrollments:
             enrollment.delete()
@@ -96,13 +77,11 @@ class Feedbacks(db.Document):
     user_email = db.StringField(required=True)
     mentor_name = db.StringField(required=True)
     course_name = db.StringField(required=True)
-    rating = db.StringField(required=True)
+    course_category = db.StringField(required=True)  # Added field
+    rating = db.IntField(required=True, min_value=1, max_value=5)  # Changed to IntField
     feedback = db.StringField(required=True)
     suggestions = db.StringField()
-    date_posted = db.DateTimeField(default=datetime.utcnow)
+    timestamp = db.DateTimeField(default=datetime.utcnow)  # Renamed from date_posted
 
     def __repr__(self):
-        return f"Feedbacks('user_email: {self.user_email}', 'mentor: {self.mentor_name}', 'rating: {self.rating}, 'feedback: {self.feedback}')"
-
-
-    
+        return f"Feedbacks({self.user_email}, {self.course_name}, Rating: {self.rating}/5)"
