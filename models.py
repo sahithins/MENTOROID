@@ -1,5 +1,8 @@
 from flask_mongoengine import MongoEngine
 from datetime import datetime, timedelta
+from mongoengine import Document, StringField, DateTimeField, ListField  # Added ListField import
+
+
 
 db = MongoEngine()
 
@@ -71,6 +74,30 @@ class Enrollment(db.Document):
         expired_enrollments = cls.objects(expire_date__lt=now)
         for enrollment in expired_enrollments:
             enrollment.delete()
+            
+class CompletionStatus(db.Document):
+
+    """
+
+    Tracks which content items (by content ID) a user has completed for a specific course.
+
+    """
+
+    user_email = db.StringField(required=True)
+
+    course_name = db.StringField(required=True)
+
+    completed_contents = ListField(StringField(), default=[])  # Changed db.ListField to ListField
+
+
+
+    def __repr__(self):
+
+        return f"CompletionStatus(user_email={self.user_email}, course_name={self.course_name}, completed_contents={self.completed_contents})"
+
+
+
+
 
 class Feedbacks(db.Document):
     user_name = db.StringField(required=True)
@@ -85,3 +112,13 @@ class Feedbacks(db.Document):
 
     def __repr__(self):
         return f"Feedbacks({self.user_email}, {self.course_name}, Rating: {self.rating}/5)"
+
+class Certificate(Document):
+
+    user_email = StringField(required=True)
+
+    course_name = StringField(required=True)
+
+    completion_date = DateTimeField(required=True)
+
+    meta = {'collection': 'certificates'}

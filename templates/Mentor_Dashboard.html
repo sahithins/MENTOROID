@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<!-- Load Google Font -->
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -40,21 +40,23 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
 
-    .python-bg {
-        background: linear-gradient(135deg, #306998, #4B8BBE);
-    }
+    /* Updated and unique course gradients */
+    .python-bg { background: linear-gradient(135deg, #306998, #4B8BBE); }
+    .java-bg { background: linear-gradient(135deg, #3c6382, #0c2461); }
+    .sql-bg { background: linear-gradient(135deg, #f39c12, #e67e22); }
 
-    .java-bg {
-        background: linear-gradient(135deg, #3c6382, #0c2461);
-    }
+    .ml-bg { background: linear-gradient(135deg, #2193b0, #6dd5ed); } /* teal blue */
+    .dataanalytics-bg { background: linear-gradient(135deg, #8e2de2, #4a00e0); } /* purple indigo */
+    .nutrition-bg { background: linear-gradient(135deg, #f7971e, #ffd200); } /* peach orange */
 
-    .sql-bg {
-        background: linear-gradient(135deg, #f39c12, #d35400);
-    }
+    .financialaccounting-bg { background: linear-gradient(135deg, #b06ab3, #4568dc); }
+    .timeproductivity-bg { background: linear-gradient(135deg, #636363, #a2ab58); }
 
-    .ml-bg {
-        background: linear-gradient(135deg, #27ae60, #2ecc71);
-    }
+    .pmp-bg { background: linear-gradient(135deg, #5f2c82, #49a09d); }
+    .ecommerce-bg { background: linear-gradient(135deg, #f7971e, #ffd200); }
+    .digitalmarketing-bg { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+    .copywriting-bg { background: linear-gradient(135deg, #ff512f, #dd2476); }
+    .autocad-bg { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
 
     .card-title {
         font-size: 1.5rem;
@@ -93,11 +95,9 @@
 </style>
 
 <main class="container py-5">
-
-    <!-- Main Heading -->
     <h1 class="main-heading">Mentor Dashboard</h1>
 
-    <!-- Category Filter -->
+    <!-- Filter -->
     <form method="post" enctype="multipart/form-data" class="form-inline justify-content-center mb-5">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group mr-3">
@@ -109,7 +109,7 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">🔍 Search</button>
+        <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
     {% if selected_category %}
@@ -119,11 +119,21 @@
     <!-- Course Cards -->
     <div class="row">
         {% for course in courses %}
+            {% set name = course.course_name.lower().replace(' ', '').replace('&', 'and').strip() %}
             {% set bg_class =
-                'python-bg' if course.course_name.lower() == 'python' else
-                'java-bg' if course.course_name.lower() == 'java' else
-                'sql-bg' if course.course_name.lower() == 'sql' else
-                'ml-bg' if course.course_name.lower() == 'ml' else
+                'python-bg' if name == 'python' else
+                'java-bg' if name == 'java' else
+                'sql-bg' if name == 'sql' else
+                'ml-bg' if name == 'ml' else
+                'dataanalytics-bg' if 'analytics' in name else
+                'financialaccounting-bg' if 'financialaccounting' in name else
+                'timeproductivity-bg' if 'timemanagement' in name else
+                'nutrition-bg' if 'nutrition' in name else
+                'pmp-bg' if 'projectmanagementprofessional(pmp)' in name or 'pmp' in name else
+                'ecommerce-bg' if 'ecommerce' in name else
+                'digitalmarketing-bg' if 'digitalmarketing' in name else
+                'copywriting-bg' if 'contentcreationandcopywriting' in name or 'copywriting' in name else
+                'autocad-bg' if 'autocad' in name else
                 'bg-secondary'
             %}
 
@@ -131,7 +141,7 @@
                 <div class="card card-custom {{ bg_class }} h-100 shadow">
                     <div class="card-body">
                         <h5 class="card-title">{{ course.course_name }}</h5>
-                        <p class="card-text mb-3">📁 Recent Uploads</p>
+                        <p class="card-text mb-3">Recent Uploads</p>
 
                         <ul class="list-unstyled">
                             {% set course_contents = content.objects(course_name=course.course_name).order_by('-id').limit(2) %}
@@ -141,16 +151,14 @@
                                 {% for content_item in course_contents %}
                                 <li class="d-flex justify-content-between align-items-center mb-2">
                                     <span>• {{ content_item.title }}</span>
-                                    <a href="/Download?filename={{ content_item.upload_file }}">
-                                        <i class="bi bi-download"></i> Download
-                                    </a>
+                                    <a href="/Download?filename={{ content_item.upload_file }}">Download</a>
                                 </li>
                                 {% endfor %}
                             {% endif %}
                         </ul>
 
                         <a href="{{ url_for('content_upload') }}?course={{ course.course_name }}" class="btn btn-outline-light btn-sm mt-3 w-100">
-                            📄 View All Uploads
+                            View All Uploads
                         </a>
                     </div>
                 </div>

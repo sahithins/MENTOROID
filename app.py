@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, ses
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_admin import Admin
 from flask_admin.contrib.mongoengine import ModelView
-from models import db, User, Content, Mentor, Courses, Enrollment, Feedbacks
+from models import db, User, Content, Mentor, Courses, Enrollment, Feedbacks, Certificate
 from functools import wraps
 import secrets, os, sys, zipfile, subprocess
 from werkzeug.utils import secure_filename
@@ -10,6 +10,11 @@ from forms import LoginForm
 import numpy as np
 from markupsafe import Markup
 from datetime import datetime, timedelta
+from reportlab.pdfgen import canvas
+
+from reportlab.lib.pagesizes import letter
+
+from reportlab.lib.units import inch
 
 try:
     from flask_bcrypt import Bcrypt
@@ -46,6 +51,8 @@ app.config["MONGO_TRACK_MODIFICATIONS"] = False
 
 app.config['UPLOAD_FOLDER'] = 'static/uploads' 
 app.config['UPLOAD_FOLDER_1'] = 'static/mentor_uploads'
+app.config['CERTIFICATES_FOLDER'] = 'static/certificates'  # Add this line
+os.makedirs(app.config['CERTIFICATES_FOLDER'], exist_ok=True)  # Add this line
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['UPLOAD_FOLDER_1'], exist_ok=True)
 
@@ -161,6 +168,55 @@ def home():
     session.pop('mentor_logged_in', None)
     session.clear()
     return render_template("Home_Page.html", title="Home Page")
+
+
+
+@app.route('/View', methods=['GET'])
+
+def view_file():
+
+    import os
+
+    rel_path = request.args.get('filename')
+
+    if not rel_path:
+
+        return "No file specified", 400
+
+
+
+    # Ensure there is a slash after "static/mentor_uploads"
+
+    prefix = "static/mentor_uploads"
+
+    if rel_path.startswith(prefix) and not rel_path[len(prefix):].startswith('/'):
+
+        rel_path = prefix + '/' + rel_path[len(prefix):]
+
+
+
+    # Normalize the path separator for Windows
+
+    rel_path = rel_path.replace('/', os.sep)
+
+
+
+    # Build the absolute path
+
+    absolute_path = os.path.join(app.root_path, rel_path)
+
+    print("Computed absolute path:", absolute_path)  # Debug output
+
+
+
+    if os.path.exists(absolute_path):
+
+        return send_file(absolute_path, as_attachment=False)
+
+    else:
+
+        return f"File not found: {absolute_path}", 404
+
 
 @app.route("/About")
 def about():
@@ -289,7 +345,12 @@ def user_dashboard():
     
     # Fetch actual courses from database
     all_courses = Courses.objects.all()  # This returns queryset (iterable)
-    
+    for course in all_courses:
+        r = np.random.randint(150, 255)
+        g = np.random.randint(150, 255)
+        b = np.random.randint(150, 255)
+        # Generate random color using numpy as before
+        course.random_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
     return render_template(
         "User_Dashboard.html", 
         title="User Dashboard", 
@@ -314,7 +375,7 @@ def profile():
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
-                user.image_file = file_path  # Update the user's profile picture field
+                user.image_file = file_path 
                 session['profile_picture'] = file_path
 
         user.fullname = new_fullname
@@ -348,7 +409,7 @@ def my_courses():
 @role_required('user')
 def feedback():
     if request.method == "POST":
-        # Get course category from the selected course
+        
         course_name = request.form['coursename']
         course = Courses.objects(course_name=course_name).first()
         
@@ -357,14 +418,14 @@ def feedback():
             user_email=session['user_email'],
             mentor_name=request.form['mentorname'],
             course_name=course_name,
-            course_category=course.course_category,  # Add this line
+            course_category=course.course_category,  
             rating=int(request.form['rating']),
             feedback=request.form['feedback'],
             suggestions=request.form['suggestions']
         )
         new_feedback.save()
-        # ... rest of your code ...
-        flash('Thank you for your feedback! Your insights are invaluable to us.', 'info')
+    
+        flash('Thank you for your feedback! Your insights are valuable to us.', 'info')
         return redirect(url_for('user_dashboard'))
     return render_template("Feedback_Page.html", title="Feedback", courses=Courses, mentors=Mentor)
 
@@ -378,18 +439,210 @@ def search():
         return render_template("User_Dashboard.html", title = "User Dashboard", courses=search_results, np = np.random, enrolled_courses=enrolled_courses)
     
     if request.args.get('query1'):
-        course_name = request.args.get('query1')
+
+        selected_course = request.args.get('query1')
+
         enrolled_courses, _ = get_enrolled_details()
-        if request.args.get('query2'):
-            file_type = request.args.get('query2')
-            session['search_content'] = file_type
-            search_results = Content.objects(course_name__icontains=course_name, file_type__icontains = file_type)
-            return render_template("User_Materials.html", title = "User Materials", courses=Courses, contents=search_results, enrolled_courses=enrolled_courses)
-        else:
-            search_results = Content.objects(course_name__icontains=course_name)
-            return render_template("User_Materials.html", title = "User Materials", courses=Courses, contents=search_results, enrolled_courses=enrolled_courses)
+
+        search_results = Content.objects(course_name__icontains=selected_course)
+
+        
+
+        return render_template("User_Materials.html", 
+
+                            title="User Materials",
+
+                            courses=Courses,
+
+                            contents=search_results,
+
+                            enrolled_courses=enrolled_courses,
+
+                            selected_course=selected_course)  # Pass selected_course to template
+
     else:
+
         return redirect(url_for('user_materials'))
+    
+    
+@app.route('/generate_certificate')
+
+@role_required('user')
+
+def generate_certificate():
+
+    try:
+
+        # Import the necessary modules from ReportLab and datetime
+
+        from reportlab.pdfgen import canvas
+
+        from reportlab.lib.pagesizes import letter
+
+        from reportlab.lib.units import inch
+
+        from datetime import datetime
+
+
+
+        # Get course name from the query string and user email from the session
+
+        course_name = request.args.get('course')
+
+        user_email = session.get('user_email')
+
+        
+
+        # Retrieve user and course objects
+
+        user = User.objects(email=user_email).first()
+
+        course = Courses.objects(course_name=course_name).first()
+
+        if not user or not course:
+
+            flash('Course or user not found.', 'error')
+
+            return redirect(url_for('user_materials'))
+
+        
+
+        # Build the certificates directory path using the full app root
+
+        certificates_dir = os.path.join(app.root_path, 'static', 'certificates')
+
+        os.makedirs(certificates_dir, exist_ok=True)
+
+        
+
+        # Create a safe filename using the user's email and course name
+
+        safe_email = secure_filename(user_email)
+
+        safe_course = secure_filename(course_name)
+
+        certificate_filename = f"{safe_email}_{safe_course}_certificate.pdf"
+
+        
+
+        # Build the full absolute path where the certificate will be saved
+
+        certificate_path = os.path.join(certificates_dir, certificate_filename)
+
+        print("DEBUG: Attempting to save certificate to:", certificate_path)
+
+        
+
+        # If a certificate record already exists, simply return the URL to view it
+
+        existing_cert = Certificate.objects(user_email=user_email, course_name=course_name).first()
+
+        if existing_cert:
+
+            certificate_url = url_for('static', filename=f'certificates/{certificate_filename}')
+
+            return render_template("certificate_view.html", certificate_url=certificate_url, course_name=course_name)
+
+        
+
+        # Generate the PDF certificate using ReportLab
+
+        c = canvas.Canvas(certificate_path, pagesize=letter)
+
+        width, height = letter
+
+        
+
+        c.setFont("Helvetica-Bold", 30)
+
+        c.drawCentredString(width / 2, height - 2 * inch, "Certificate of Completion")
+
+        
+
+        c.setFont("Helvetica", 20)
+
+        c.drawCentredString(width / 2, height - 3 * inch, "This is to certify that")
+
+        
+
+        c.setFont("Helvetica-Bold", 24)
+
+        c.drawCentredString(width / 2, height - 4 * inch, user.fullname)
+
+        
+
+        c.setFont("Helvetica", 20)
+
+        c.drawCentredString(width / 2, height - 5 * inch, "has successfully completed the course")
+
+        
+
+        c.setFont("Helvetica-Bold", 24)
+
+        c.drawCentredString(width / 2, height - 6 * inch, course_name)
+
+        
+
+        c.setFont("Helvetica", 16)
+
+        current_date = datetime.now().strftime("%B %d, %Y")
+
+        c.drawCentredString(width / 2, height - 7 * inch, f"Issued on {current_date}")
+
+        
+
+        c.save()
+
+        print("DEBUG: PDF saved successfully.")
+
+        
+
+        # Create a record in the certificates collection
+
+        new_cert = Certificate(
+
+            user_email=user_email,
+
+            course_name=course_name,
+
+            completion_date=datetime.now()
+
+        )
+
+        new_cert.save()
+
+        
+
+        # Generate a URL pointing to the certificate (which will be under /static/certificates/)
+
+        certificate_url = url_for('static', filename=f'certificates/{certificate_filename}')
+
+        return render_template("certificate_view.html", certificate_url=certificate_url, course_name=course_name)
+
+        
+
+    except Exception as e:
+
+        print("DEBUG: Error generating certificate:", e)
+
+        flash('Error generating certificate', 'error')
+
+        return redirect(url_for('user_materials'))
+    
+    
+
+@app.route("/Mentor_Courses")
+
+@role_required('mentor')
+
+def mentor_courses():
+
+    courses = Courses.objects(mentor_email = session['mentor_email'])
+
+    return render_template("Mentor_Courses.html", title = "Mentor Courses", courses=courses, content=Content)
+
+
+
 
 @app.route("/Enroll", methods = ["GET", "POST"])
 @role_required('user')
@@ -585,6 +838,44 @@ def view_feedback():
         grouped_feedbacks=grouped_feedbacks,
         categories=course_categories
     )
+@app.route('/mentor/edit_profile', methods=['GET', 'POST'])
+@role_required('mentor')
+def mentor_edit_profile():
+    if not session.get('mentor_logged_in'):
+        return redirect(url_for('mentor'))
+
+    mentor = Mentor.objects(email=session['mentor_email']).first()
+
+    if not mentor:
+        flash("Mentor not found", "danger")
+        return redirect(url_for('mentor_dashboard'))
+
+    if request.method == 'POST':
+        mentor.fullname = request.form['fullname']
+        mentor.phonenumber = request.form['phonenumber']
+        mentor.qualification = request.form['qualification']
+        mentor.experience = request.form['experience']
+        mentor.linkedin = request.form['linkedin']
+
+        # ✅ Handle profile picture update
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+
+                mentor.image_file = file_path
+                session['profile_picture'] = file_path  # Also update in session
+
+        mentor.save()
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for('mentor_dashboard'))
+
+    return render_template("mentor_edit_profile.html", mentor=mentor)
+
+
+
 
 @app.route("/Mentor_Logout")
 def mentor_logout():

@@ -9,52 +9,174 @@
                 <h2 class="h4 font-weight-bold mb-4">Course Content</h2>
                 <div class="form-group mb-4">
                     <label for="course" class="font-weight-medium">Select Course</label>
-                    <select id="course" name="coursename" class="form-control">
+                    <select id="course" name="coursename" class="form-control" onchange="searchContent()">
                         <option value="">Select Course</option>
                         {% for course in courses.objects.all() %}
                             {% if course.course_name in enrolled_courses %}
-                                <option value="{{ course.course_name }}">{{ course.course_name }}</option>
+                                <option value="{{ course.course_name }}" 
+                                        {% if selected_course and selected_course == course.course_name %}selected{% endif %}>
+                                    {{ course.course_name }}
+                                </option>
                             {% endif %}
                         {% endfor %}
                     </select>
                 </div>
-                <div class="form-group mb-4">
-                    <label for="content-type" class="font-weight-medium">Select Content Type</label>
-                    <select id="content-type" name="contenttype" class="form-control">
-                        <option value="">Select Content Type</option>
-                        <option value="Video">Videos</option>
-                        <option value="Material">Materials</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary bounce-in" onclick="searchContent()">View Content</button>
             </div>
     
             <!-- Search Results Section -->
             <div class="col-md-8 p-4 fade-in">
-                <h2 class="h4 font-weight-bold mb-4">Search Results</h2>
+                <h2 class="h4 font-weight-bold mb-4">Course Materials</h2>
                 <ul class="list-unstyled mb-4">
-                    {%for content in contents %}
-                        <li class="d-flex justify-content-between align-items-center mb-2">
-                            <span>{{ content.title }}</span>
-                            <a href="/Download?filename={{ content.upload_file }}" class="text-primary">download</a>
+                    {% for content in contents %}
+                        <li class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                            <div>
+                                <span class="h6">{{ content.title }}</span>
+                                <small class="d-block text-muted">Type: {{ content.file_type }}</small>
+                                <span class="badge bg-success completion-status" id="status-{{ content.id }}" style="display: none;">Completed</span>
+                            </div>
+                            <div>
+                                <a href="javascript:void(0)" 
+                                   onclick="viewFile('/View?filename={{ content.upload_file }}', '{{ content.id }}')" 
+                                   class="btn btn-sm btn-info mr-2">View</a>
+                                <a href="/Download?filename={{ content.upload_file }}" 
+                                   class="btn btn-sm btn-primary">Download</a>
+                            </div>
                             <input type="hidden" class="file-name" value="{{ content.upload_file }}">
+                            <input type="hidden" class="content-id" value="{{ content.id }}">
                         </li>
                     {% endfor %}
                 </ul>
-                <button class="btn btn-primary bounce-in" onclick="downloadZip()">Zip Download</button>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-primary bounce-in" onclick="downloadZip()">Zip Download</button>
+                    <button id="certificateBtn" class="btn btn-success" onclick="generateCertificate()" disabled>
+                        Get Certificate
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal for File Preview -->
+    <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filePreviewModalLabel">File Preview</h5>
+                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button> -->
+                </div>
+                <div class="modal-body">
+                    <iframe id="filePreviewFrame" src="" style="width: 100%; height: 500px;" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function searchContent() {
             const query1 = document.getElementById('course').value;
-            const query2 = document.getElementById('content-type').value;
-            window.location.href = `/search?query1=${encodeURIComponent(query1)}&query2=${encodeURIComponent(query2)}`;
+            window.location.href = `/search?query1=${encodeURIComponent(query1)}`;
         }
         function downloadZip() {
             const fileNames = Array.from(document.querySelectorAll('.file-name')).map(input => input.value);
             const queryString = fileNames.map(file => `files=${encodeURIComponent(file)}`).join('&');
             window.location.href = `/download_zip?${queryString}`;
         }
+        // This function sets the iframe src and shows the modal for preview
+        function viewFile(fileUrl, contentId) {
+            try {
+                const previewFrame = document.getElementById("filePreviewFrame");
+                previewFrame.src = fileUrl;
+                
+                const modalElement = document.getElementById("filePreviewModal");
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+
+                // Mark as completed
+                markAsCompleted(contentId);
+            } catch (error) {
+                console.error('Error showing modal:', error);
+            }
+        }
+
+        function closeModal() {
+            print("closeModal called");
+            modal.hide();
+            const modalElement = document.getElementById("filePreviewModal");
+            const modal = new bootstrap.Modal(modalElement);
+            modal.hide();
+            // if (modal) {
+            //     modal.hide();
+            // }
+            // document.getElementById("filePreviewFrame").src = '';
+        }
+
+        // Close modal when clicking outside
+        const filePreviewModal = document.getElementById('filePreviewModal');
+        filePreviewModal.addEventListener('hidden.bs.modal', function () {
+            document.getElementById("filePreviewFrame").src = '';
+        });
+
+        // Make sure Bootstrap is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap is not loaded');
+            }
+        });
+
+        // Track completed content
+        let completedContent = new Set(JSON.parse(localStorage.getItem('completedContent') || '[]'));
+        const selectedCourse = document.getElementById('course').value;
+        const storageKey = `completedContent_${selectedCourse}`;
+
+        function markAsCompleted(contentId) {
+            // Add to completed set
+            completedContent.add(contentId);
+            
+            // Update localStorage
+            localStorage.setItem(storageKey, JSON.stringify([...completedContent]));
+            
+            // Show completion badge
+            const statusBadge = document.getElementById(`status-${contentId}`);
+            if (statusBadge) {
+                statusBadge.style.display = 'inline-block';
+            }
+            
+            // Check if all content is completed
+            checkAllCompleted();
+        }
+
+        function checkAllCompleted() {
+            const totalContent = document.querySelectorAll('.content-id').length;
+            const certificateBtn = document.getElementById('certificateBtn');
+            
+            if (completedContent.size === totalContent && totalContent > 0) {
+                certificateBtn.disabled = false;
+            }
+        }
+
+        function generateCertificate() {
+            const course = document.getElementById('course').value;
+            window.location.href = `/generate_certificate?course=${encodeURIComponent(course)}`;
+        }
+
+        // Initialize completion status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load completed content from localStorage
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                completedContent = new Set(JSON.parse(saved));
+            }
+
+            // Update UI for completed items
+            completedContent.forEach(contentId => {
+                const statusBadge = document.getElementById(`status-${contentId}`);
+                if (statusBadge) {
+                    statusBadge.style.display = 'inline-block';
+                }
+            });
+
+            // Check if all content is completed
+            checkAllCompleted();
+        });
     </script>
 {% endblock content %}

@@ -1,6 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .badge {
+        margin-right: 5px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+</style>
+
 <main class="mt-5 container" style="font-family: 'Poppins', sans-serif;">
     <div class="card shadow-sm rounded-3">
         <div class="card-body">
@@ -24,17 +35,10 @@
                             <td>
                                 {% for course in user['Enrolled Courses'].split(',') %}
                                     {% set course_trimmed = course.strip() %}
-                                    {% if course_trimmed == 'Python' %}
-                                        <span class="badge bg-success me-1">{{ course_trimmed }}</span>
-                                    {% elif course_trimmed == 'Java' %}
-                                        <span class="badge bg-warning text-dark me-1">{{ course_trimmed }}</span>
-                                    {% elif course_trimmed == 'SQL' %}
-                                        <span class="badge bg-primary me-1">{{ course_trimmed }}</span>  <!-- changed from red to blue -->
-                                    {% elif course_trimmed == 'ML' %}
-                                        <span class="badge bg-info text-dark me-1">{{ course_trimmed }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary me-1">{{ course_trimmed }}</span>
-                                    {% endif %}
+                                    {% set colors = ['bg-primary', 'bg-success', 'bg-info', 'bg-warning', 'bg-danger', 
+                                                    'bg-secondary', 'bg-dark', 'bg-purple', 'bg-indigo', 'bg-teal'] %}
+                                    {% set random_index = range(0, colors|length)|random %}
+                                    <span class="badge {{ colors[random_index] }} text-white me-1">{{ course_trimmed }}</span>
                                 {% endfor %}
                             </td>
                         </tr>
@@ -45,4 +49,22 @@
         </div>
     </div>
 </main>
+
+<script>
+    // Ensure consistent colors for the same course across page reloads
+    document.addEventListener('DOMContentLoaded', function() {
+        const courseElements = document.querySelectorAll('.badge');
+        const colorMap = {};
+        
+        courseElements.forEach(element => {
+            const courseName = element.textContent.trim();
+            if (!colorMap[courseName]) {
+                // Generate a random hue between 0-360 with fixed saturation and lightness
+                const hue = Math.floor(Math.random() * 360);
+                colorMap[courseName] = `hsl(${hue}, 70%, 45%)`;
+            }
+            element.style.backgroundColor = colorMap[courseName];
+        });
+    });
+</script>
 {% endblock content %}
