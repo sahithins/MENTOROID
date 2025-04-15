@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .unit-card { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 1.5rem; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .unit-header { background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e0e0e0; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+    .unit-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0; }
+    .unit-body { padding: 1.25rem; }
+    .lesson-item { border: 1px dashed #ced4da; padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .lesson-title { font-weight: 500; }
+    .action-btns a, .action-btns button, .action-btns-unit button { margin-left: 5px; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+    .add-form { background-color: #f1f3f5; padding: 1rem; border-radius: 5px; margin-top: 1rem; }
+    .form-label { font-weight: 500; }
+    .modal-body .form-label { margin-bottom: 0.3rem; }
+    .modal-body .form-control, .modal-body .form-select { margin-bottom: 0.8rem; }
+</style>
+
+<main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+         <h1 class="h3">Manage Course: {{ course.course_name }}</h1>
+         
+         <div> 
+            <a href="{{ url_for('manage_quiz', course_id=course.id) }}" class="btn btn-info btn-sm me-2">
+                <i class="bi bi-patch-question-fill"></i> Manage Final Quiz {% if not quiz_exists %}(Create){% endif %}
+            </a>
+             <a href="{{ url_for('mentor_course_list') }}" class="btn btn-outline-secondary btn-sm">
+                 <i class="bi bi-arrow-left"></i> Back to Courses
+             </a>
+         </div>
+    </div>
+    <p class="text-muted">{{ course.summary }}</p>
+
+    <div class="card add-form mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Add New Unit</h5>
+            <form action="{{ url_for('add_unit', course_id=course.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label for="unit_title" class="form-label">Unit Title</label>
+                        <input type="text" class="form-control form-control-sm" id="unit_title" name="unit_title" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="unit_order" class="form-label">Order</label>
+                        <input type="number" class="form-control form-control-sm" id="unit_order" name="unit_order" value="0" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-success btn-sm w-100">Add Unit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for item in units_with_lessons %}
+        {% set unit = item.unit %}
+        {% set lessons = item.lessons %}
+        <div class="unit-card">
+            <div class="unit-header">
+                <span class="unit-title"><i class="bi bi-collection me-2"></i>{{ unit.title }} (Order: {{ unit.order }})</span>
+                <div class="action-btns-unit">
+                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUnitModal-{{ unit.id }}" title="Edit Unit">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </button>
+                    <form action="{{ url_for('delete_unit', unit_id=unit.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete Unit \'{{ unit.title }}\' and ALL its lessons?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Unit">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="unit-body">
+                <h6>Lessons</h6>
+                {% if lessons %}
+                    {% for lesson in lessons %}
+                        <div class="lesson-item">
+                            <div>
+                                <span class="lesson-title"><i class="bi bi-file-earmark-text me-1"></i>{{ lesson.title }}</span>
+                                <small class="text-muted d-block">Type: {{ lesson.file_type }} | Order: {{ lesson.order }}</small>
+                                {% if lesson.upload_file %}
+                                <small class="text-muted d-block">File: {{ lesson.upload_file.split('/')[-1] }}</small>
+                                {% elif lesson.external_url %}
+                                <small class="text-muted d-block">URL: <a href="{{lesson.external_url}}" target="_blank">Link</a></small>
+                                {% endif %}
+                            </div>
+                            <div class="action-btns">
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editLessonModal-{{ lesson.id }}" title="Edit Lesson">
+                                     <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+                                <form action="{{ url_for('delete_lesson', lesson_id=lesson.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete Lesson \'{{ lesson.title }}\'?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Lesson">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="editLessonModal-{{ lesson.id }}" tabindex="-1" aria-labelledby="editLessonModalLabel-{{ lesson.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ url_for('edit_lesson', lesson_id=lesson.id) }}" method="POST" enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editLessonModalLabel-{{ lesson.id }}">Edit Lesson: {{ lesson.title }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-2">
+                                                <label for="lesson_title_{{ lesson.id }}" class="form-label">Title</label>
+                                                <input type="text" class="form-control form-control-sm" id="lesson_title_{{ lesson.id }}" name="lesson_title" value="{{ lesson.title }}" required>
+                                            </div>
+                                             <div class="mb-2">
+                                                <label for="lesson_description_{{ lesson.id }}" class="form-label">Description</label>
+                                                <textarea class="form-control form-control-sm" id="lesson_description_{{ lesson.id }}" name="lesson_description" rows="2">{{ lesson.description }}</textarea>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                     <label for="lesson_file_type_{{ lesson.id }}" class="form-label">Type</label>
+                                                     <select class="form-select form-select-sm" id="lesson_file_type_{{ lesson.id }}" name="lesson_file_type" required>
+                                                         <option value="Video" {% if lesson.file_type == 'Video' %}selected{% endif %}>Video</option>
+                                                         <option value="Material" {% if lesson.file_type == 'Material' %}selected{% endif %}>Material</option>
+                                                         <option value="Quiz" {% if lesson.file_type == 'Quiz' %}selected{% endif %}>Quiz</option>
+                                                         <option value="Assignment" {% if lesson.file_type == 'Assignment' %}selected{% endif %}>Assignment</option>
+                                                         </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="lesson_order_{{ lesson.id }}" class="form-label">Order</label>
+                                                    <input type="number" class="form-control form-control-sm" id="lesson_order_{{ lesson.id }}" name="lesson_order" value="{{ lesson.order }}" min="0">
+                                                </div>
+                                            </div>
+                                             <div class="mb-2">
+                                                <label for="lesson_external_url_{{ lesson.id }}" class="form-label">External URL (Optional)</label>
+                                                <input type="url" class="form-control form-control-sm" id="lesson_external_url_{{ lesson.id }}" name="lesson_external_url" value="{{ lesson.external_url or '' }}" placeholder="https://...">
+                                            </div>
+                                             <div class="mb-2">
+                                                <label for="lesson_file_{{ lesson.id }}" class="form-label">Upload New File (Optional)</label>
+                                                <input type="file" class="form-control form-control-sm" id="lesson_file_{{ lesson.id }}" name="lesson_file">
+                                                 {% if lesson.upload_file %}
+                                                 <small class="text-muted">Current file: {{ lesson.upload_file.split('/')[-1] }}
+                                                     </small>
+                                                 {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted fst-italic">No lessons added to this unit yet.</p>
+                {% endif %}
+
+                <div class="add-form mt-3">
+                    <h6>Add New Lesson to this Unit</h6>
+                     <form action="{{ url_for('add_lesson', unit_id=unit.id) }}" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-2">
+                            <div class="col-md-12 mb-2">
+                                <label for="lesson_title_new_{{ unit.id }}" class="form-label">Title</label>
+                                <input type="text" class="form-control form-control-sm" id="lesson_title_new_{{ unit.id }}" name="lesson_title" required>
+                            </div>
+                             <div class="col-md-12 mb-2">
+                                <label for="lesson_description_new_{{ unit.id }}" class="form-label">Description</label>
+                                <textarea class="form-control form-control-sm" id="lesson_description_new_{{ unit.id }}" name="lesson_description" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="lesson_file_type_new_{{ unit.id }}" class="form-label">Type</label>
+                                <select class="form-select form-select-sm" id="lesson_file_type_new_{{ unit.id }}" name="lesson_file_type" required>
+                                    <option value="Video">Video</option>
+                                    <option value="Material">Material</option>
+                                    <option value="Quiz">Quiz</option>
+                                    <option value="Assignment">Assignment</option>
+                                    </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="lesson_order_new_{{ unit.id }}" class="form-label">Order</label>
+                                <input type="number" class="form-control form-control-sm" id="lesson_order_new_{{ unit.id }}" name="lesson_order" value="0" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lesson_external_url_new_{{ unit.id }}" class="form-label">External URL (Optional)</label>
+                                <input type="url" class="form-control form-control-sm" id="lesson_external_url_new_{{ unit.id }}" name="lesson_external_url" placeholder="https://...">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="lesson_file_new_{{ unit.id }}" class="form-label">Upload File (Optional)</label>
+                                <input type="file" class="form-control form-control-sm" id="lesson_file_new_{{ unit.id }}" name="lesson_file">
+                            </div>
+                            <div class="col-md-4 align-self-end">
+                                <button type="submit" class="btn btn-success btn-sm w-100">Add Lesson</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="editUnitModal-{{ unit.id }}" tabindex="-1" aria-labelledby="editUnitModalLabel-{{ unit.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ url_for('edit_unit', unit_id=unit.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editUnitModalLabel-{{ unit.id }}">Edit Unit: {{ unit.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                             <div class="mb-3">
+                                <label for="unit_title_{{ unit.id }}" class="form-label">Unit Title</label>
+                                <input type="text" class="form-control" id="unit_title_{{ unit.id }}" name="unit_title" value="{{ unit.title }}" required>
+                            </div>
+                             <div class="mb-3">
+                                <label for="unit_order_{{ unit.id }}" class="form-label">Order</label>
+                                <input type="number" class="form-control" id="unit_order_{{ unit.id }}" name="unit_order" value="{{ unit.order }}" min="0">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-secondary">No units created for this course yet. Use the 'Add New Unit' form above.</div>
+    {% endfor %}
+
+</main>
+{% endblock content %}

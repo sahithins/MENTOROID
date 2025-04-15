@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .question-card { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 1rem; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .question-header { background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e0e0e0; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+    .question-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 0; }
+    .question-body { padding: 1.25rem; }
+    .options-list { list-style: none; padding-left: 0; }
+    .options-list li { margin-bottom: 0.3rem; }
+    .correct-option { font-weight: bold; color: #28a745; } /* Green for correct */
+    .action-btns button { margin-left: 5px; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+    .add-form { background-color: #f1f3f5; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #dee2e6; }
+    .option-input-group { display: flex; align-items: center; margin-bottom: 0.5rem; }
+    .option-input-group input[type="text"] { flex-grow: 1; margin-right: 10px; }
+    #add-option-btn { margin-top: 10px; }
+    .settings-card { background-color: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 2rem;}
+</style>
+
+<main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3">Manage Final Quiz: {{ course.course_name }}</h1>
+        <a href="{{ url_for('manage_course', course_id=course.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Course Content
+        </a>
+    </div>
+
+    <!-- Quiz Settings -->
+    <div class="card settings-card">
+        <h5 class="mb-3">Quiz Settings</h5>
+        <form action="{{ url_for('update_quiz_settings', course_id=course.id) }}" method="POST">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+             <div class="row g-3 align-items-end">
+                 <div class="col-md-4">
+                    <label for="passing_score_percent" class="form-label">Passing Score (%)</label>
+                    <input type="number" class="form-control form-control-sm" id="passing_score_percent" name="passing_score_percent" min="0" max="100" value="{{ quiz.passing_score_percent }}" required>
+                 </div>
+                 <div class="col-md-3">
+                     <button type="submit" class="btn btn-primary btn-sm w-100">Update Settings</button>
+                 </div>
+             </div>
+        </form>
+    </div>
+
+
+    <!-- Add New Question Form -->
+    <div class="card add-form mb-4">
+        <h5 class="mb-3">Add New Question</h5>
+        <form action="{{ url_for('add_quiz_question', course_id=course.id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text</label>
+                <textarea class="form-control" id="question_text" name="question_text" rows="2" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Options (Mark the correct one)</label>
+                <div id="options-container">
+                    <!-- Option 1 -->
+                    <div class="option-input-group mb-2">
+                        <input type="radio" name="correct_option" value="0" class="form-check-input me-2" required>
+                        <input type="text" name="options[]" class="form-control form-control-sm" placeholder="Option 1 Text" required>
+                    </div>
+                    <!-- Option 2 -->
+                     <div class="option-input-group mb-2">
+                        <input type="radio" name="correct_option" value="1" class="form-check-input me-2" required>
+                        <input type="text" name="options[]" class="form-control form-control-sm" placeholder="Option 2 Text" required>
+                    </div>
+                </div>
+                <button type="button" id="add-option-btn" class="btn btn-secondary btn-sm"><i class="bi bi-plus-circle"></i> Add Option</button>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Add Question</button>
+        </form>
+    </div>
+
+    <!-- Existing Questions -->
+    <h2 class="h4 mt-4 mb-3">Existing Questions ({{ quiz.questions|length }})</h2>
+    {% if quiz.questions %}
+        {% for question in quiz.questions %}
+            {% set loop_index = loop.index0 %} {# Get 0-based index #}
+            <div class="question-card">
+                <div class="question-header">
+                    <span class="question-title">Q{{ loop.index }}: {{ question.text }}</span>
+                    <div class="action-btns">
+                        <!-- Edit button (optional, could be complex) -->
+                        <!-- <button type="button" class="btn btn-warning btn-sm" title="Edit Question"><i class="bi bi-pencil-square"></i></button> -->
+                         <form action="{{ url_for('delete_quiz_question', quiz_id=quiz.id, question_index=loop_index) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this question?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Question">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="question-body">
+                    <ul class="options-list">
+                        {% for option in question.options %}
+                             <li>
+                                <i class="bi {% if loop.index0 == question.correct_option %}bi-check-circle-fill text-success{% else %}bi-circle{% endif %} me-2"></i>
+                                {{ option }}
+                                {% if loop.index0 == question.correct_option %}
+                                    <span class="correct-option ms-1">(Correct)</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-secondary">No questions added to this quiz yet. Use the form above.</div>
+    {% endif %}
+
+</main>
+
+<script>
+document.getElementById('add-option-btn').addEventListener('click', function() {
+    const container = document.getElementById('options-container');
+    const optionIndex = container.children.length; // Next index is current count
+
+    const div = document.createElement('div');
+    div.className = 'option-input-group mb-2';
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'correct_option';
+    radio.value = optionIndex;
+    radio.className = 'form-check-input me-2';
+    radio.required = true; // All radios share the required attribute
+
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.name = 'options[]'; // Use array notation
+    textInput.className = 'form-control form-control-sm';
+    textInput.placeholder = `Option ${optionIndex + 1} Text`;
+    textInput.required = true;
+
+    // Optional: Add a remove button for dynamically added options
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-danger btn-sm ms-2';
+    removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+    removeBtn.onclick = function() {
+        container.removeChild(div);
+        // Optional: Renumber radio values if needed, though not strictly necessary
+    };
+
+    div.appendChild(radio);
+    div.appendChild(textInput);
+    div.appendChild(removeBtn); // Add the remove button
+    container.appendChild(div);
+});
+</script>
+{% endblock content %}

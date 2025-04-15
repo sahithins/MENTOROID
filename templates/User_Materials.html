@@ -1,182 +1,330 @@
 {% extends "layout.html" %}
 {% block content %}
-    <br>
-    <br>
-    <div class="container">
-        <div class="row">
-            <!-- Course Content Section -->
-            <div class="col-md-4 mb-4 p-4 border border-secondary rounded slide-in">
-                <h2 class="h4 font-weight-bold mb-4">Course Content</h2>
-                <div class="form-group mb-4">
-                    <label for="course" class="font-weight-medium">Select Course</label>
-                    <select id="course" name="coursename" class="form-control" onchange="searchContent()">
-                        <option value="">Select Course</option>
-                        {% for course in courses.objects.all() %}
-                            {% if course.course_name in enrolled_courses %}
-                                <option value="{{ course.course_name }}" 
-                                        {% if selected_course and selected_course == course.course_name %}selected{% endif %}>
-                                    {{ course.course_name }}
-                                </option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .course-select-section { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 2rem; }
+    .unit-accordion .accordion-item { margin-bottom: 1rem; border: none; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .unit-accordion .accordion-header { margin-bottom: 0; }
+    .unit-accordion .accordion-button { margin-left: 10px; margin-bottom: 3px; font-weight: 600; font-size: 1rem; background-color: #e9ecef; color: #343a40; box-shadow: none !important; }
+    .unit-accordion .accordion-button:not(.collapsed) { background-color: #dee2e6; }
+    .unit-accordion .accordion-button:focus { box-shadow: none; }
+    .unit-accordion .accordion-body { padding: 1rem 1.25rem; background-color: #fff; }
+    .lesson-list-item { padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .lesson-list-item:last-child { border-bottom: none; }
+    .lesson-title { display: flex; align-items: center; }
+    .lesson-title i { margin-right: 8px; color: #6c757d; font-size: 1.1rem; }
+    .lesson-actions .btn { margin-left: 5px; }
+    .progress-container { margin-top: 1rem; }
+    .completion-badge { font-size: 0.9em; margin-left: 10px; }
+    #certificateBtn:disabled { cursor: not-allowed; }
+</style>
+
+<br>
+<div class="container">
+    <div class="course-select-section slide-in">
+        <h2 class="h5 font-weight-bold mb-3">View Course Materials</h2>
+        <form method="GET" action="{{ url_for('user_materials') }}">
+             <div class="row g-2 align-items-end">
+                 <div class="col-md-9">
+                     <label for="course" class="form-label">Select Enrolled Course</label>
+                     <select id="course" name="course_id" class="form-select" required onchange="this.form.submit()">
+                         <option value="">-- Select a Course --</option>
+                         {% for course_item in enrolled_courses_list %}
+                         <option value="{{ course_item.id }}" {% if selected_course_id == course_item.id %}selected{% endif %}>
+                             {{ course_item.name }}
+                         </option>
+                         {% endfor %}
+                     </select>
+                 </div>
+                 <div class="col-md-3">
+                      <button type="submit" class="btn btn-primary w-100">Load Materials</button>
+                 </div>
+             </div>
+        </form>
+    </div>
+
+    {% if selected_course %}
+    <div class="mt-4 fade-in">
+        <h2 class="h4 font-weight-bold mb-3">{{ selected_course.course_name }} Materials</h2>
+
+        {% if all_lessons_count > 0 %}
+        <div class="progress-container mb-4">
+            <label>Course Progress (<span id="completed-count">{{ completed_lessons_count }}</span>/<span id="total-count">{{ all_lessons_count }}</span> lessons)</label>
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: {{ completion_percentage }}%;" aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ completion_percentage }}%</div>
             </div>
-    
-            <!-- Search Results Section -->
-            <div class="col-md-8 p-4 fade-in">
-                <h2 class="h4 font-weight-bold mb-4">Course Materials</h2>
-                <ul class="list-unstyled mb-4">
-                    {% for content in contents %}
-                        <li class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
-                            <div>
-                                <span class="h6">{{ content.title }}</span>
-                                <small class="d-block text-muted">Type: {{ content.file_type }}</small>
-                                <span class="badge bg-success completion-status" id="status-{{ content.id }}" style="display: none;">Completed</span>
-                            </div>
-                            <div>
-                                <a href="javascript:void(0)" 
-                                   onclick="viewFile('/View?filename={{ content.upload_file }}', '{{ content.id }}')" 
-                                   class="btn btn-sm btn-info mr-2">View</a>
-                                <a href="/Download?filename={{ content.upload_file }}" 
-                                   class="btn btn-sm btn-primary">Download</a>
-                            </div>
-                            <input type="hidden" class="file-name" value="{{ content.upload_file }}">
-                            <input type="hidden" class="content-id" value="{{ content.id }}">
-                        </li>
-                    {% endfor %}
-                </ul>
-                <div class="d-flex justify-content-between align-items-center">
-                    <button class="btn btn-primary bounce-in" onclick="downloadZip()">Zip Download</button>
-                    <button id="certificateBtn" class="btn btn-success" onclick="generateCertificate()" disabled>
-                        Get Certificate
-                    </button>
+        </div>
+        {% endif %}
+
+        <div class="accordion unit-accordion" id="unitsAccordion">
+            {% for unit, lessons in course_structure.items() %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-{{ unit.id }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ unit.id }}" aria-expanded="false" aria-controls="collapse-{{ unit.id }}">
+                             <i class="bi bi-collection me-2"></i> {{ unit.title }}
+                        </button>
+                    </h2>
+                    <div id="collapse-{{ unit.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ unit.id }}" data-bs-parent="#unitsAccordion">
+                        <div class="accordion-body">
+                            <ul class="list-unstyled mb-0">
+                                {% for lesson in lessons %}
+                                <li class="lesson-list-item" data-lesson-id="{{ lesson.id }}">
+                                    <div class="lesson-title">
+                                         {% if lesson.file_type == 'Video' %} <i class="bi bi-play-circle"></i>
+                                         {% elif lesson.file_type == 'Material' %} <i class="bi bi-file-earmark-text"></i>
+                                         {% elif lesson.file_type == 'Quiz' %} <i class="bi bi-patch-question"></i>
+                                         {% elif lesson.file_type == 'Assignment' %} <i class="bi bi-clipboard-check"></i>
+                                         {% else %} <i class="bi bi-file-earmark"></i>
+                                         {% endif %}
+                                        <span>{{ lesson.title }}</span>
+                                        <span class="badge bg-success completion-badge ms-2" id="status-{{ lesson.id }}" style="{{ 'display: inline-block;' if lesson.id|string in completed_lesson_ids else 'display: none;' }}">
+                                            <i class="bi bi-check-circle-fill"></i> Completed
+                                        </span>
+                                    </div>
+                                    <div class="lesson-actions">
+                                        {% if lesson.upload_file %}
+                                            <a href="javascript:void(0)" onclick="viewFileAndMarkComplete('/View?filename={{ lesson.upload_file }}', '{{ lesson.id }}')" class="btn btn-sm btn-outline-info" title="View"><i class="bi bi-eye"></i> View</a>
+                                            <a href="/Download?filename={{ lesson.upload_file }}" class="btn btn-sm btn-outline-primary" title="Download"><i class="bi bi-download"></i> Download</a>
+                                        {% elif lesson.external_url %}
+                                            <a href="{{ lesson.external_url }}" target="_blank" onclick="markLessonAsCompleted('{{ lesson.id }}')" class="btn btn-sm btn-outline-info" title="Open Link"><i class="bi bi-link-45deg"></i> Open Link</a>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>No File/Link</button>
+                                        {% endif %}
+                                     </div>
+                                </li>
+                                {% endfor %}
+                                {% if not lessons %}
+                                    <li class="text-muted">No lessons in this unit yet.</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+            {% else %}
+                 {% if selected_course_id %} {# Only show if a course was selected but no structure found #}
+                     <div class="alert alert-warning">No units or lessons found for this course.</div>
+                 {% endif %}
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4 d-flex justify-content-center gap-3">
+            {% if quiz and quiz.questions %}
+            <button id="takeQuizBtn" class="btn btn-warning" onclick="takeQuiz()"
+                {% if completion_percentage < 100 or quiz_passed %}disabled{% endif %}>
+                <i class="bi bi-pencil-square"></i>
+                {% if quiz_taken and not quiz_passed %}
+                    Retake Final Quiz
+                {% else %}
+                    Take Final Quiz
+                {% endif %}
+            </button>
+            {% endif %}
+
+            <button id="certificateBtn" class="btn btn-success bounce-in" onclick="generateCertificate()"
+                    {% set lessons_complete = completion_percentage >= 100 and all_lessons_count > 0 %}
+                    {% if not lessons_complete or (quiz and not quiz_passed) %}
+                        disabled
+                    {% endif %}
+                    >
+                <i class="bi bi-patch-check-fill"></i> Get Certificate
+            </button>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filePreviewModalLabel">File Preview</h5>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="filePreviewFrame" src="" style="width: 100%; height: 60vh;" frameborder="0"></iframe>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal for File Preview -->
-    <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filePreviewModalLabel">File Preview</h5>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button> -->
-                </div>
-                <div class="modal-body">
-                    <iframe id="filePreviewFrame" src="" style="width: 100%; height: 500px;" frameborder="0"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
+<script>
+    // Ensure Bootstrap is loaded for modal functionality
+    var filePreviewModalElement = document.getElementById('filePreviewModal');
+    var previewModal = filePreviewModalElement ? new bootstrap.Modal(filePreviewModalElement) : null;
 
-    <script>
-        function searchContent() {
-            const query1 = document.getElementById('course').value;
-            window.location.href = `/search?query1=${encodeURIComponent(query1)}`;
-        }
-        function downloadZip() {
-            const fileNames = Array.from(document.querySelectorAll('.file-name')).map(input => input.value);
-            const queryString = fileNames.map(file => `files=${encodeURIComponent(file)}`).join('&');
-            window.location.href = `/download_zip?${queryString}`;
-        }
-        // This function sets the iframe src and shows the modal for preview
-        function viewFile(fileUrl, contentId) {
-            try {
-                const previewFrame = document.getElementById("filePreviewFrame");
-                previewFrame.src = fileUrl;
-                
-                const modalElement = document.getElementById("filePreviewModal");
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
-
-                // Mark as completed
-                markAsCompleted(contentId);
-            } catch (error) {
-                console.error('Error showing modal:', error);
+    // Function to handle viewing file and marking complete
+    function viewFileAndMarkComplete(fileUrl, lessonId) {
+        const previewFrame = document.getElementById("filePreviewFrame");
+        if (previewFrame) {
+            previewFrame.src = fileUrl;
+            if (previewModal) {
+                previewModal.show();
+            } else {
+                 console.error("Preview modal not initialized");
             }
+            // Mark as completed when viewed
+            markLessonAsCompleted(lessonId);
+        } else {
+             console.error("Preview frame not found");
+        }
+    }
+
+     // Function to mark lesson as completed via AJAX
+    function markLessonAsCompleted(lessonId) {
+        const courseId = '{{ selected_course_id }}'; // Get course ID from template context
+        const statusBadge = document.getElementById(`status-${lessonId}`);
+
+        // Avoid re-sending if already marked visually
+        if (statusBadge && statusBadge.style.display !== 'none') {
+             console.log(`Lesson ${lessonId} already marked.`);
+             return;
         }
 
-        function closeModal() {
-            print("closeModal called");
-            modal.hide();
-            const modalElement = document.getElementById("filePreviewModal");
-            const modal = new bootstrap.Modal(modalElement);
-            modal.hide();
-            // if (modal) {
-            //     modal.hide();
-            // }
-            // document.getElementById("filePreviewFrame").src = '';
-        }
-
-        // Close modal when clicking outside
-        const filePreviewModal = document.getElementById('filePreviewModal');
-        filePreviewModal.addEventListener('hidden.bs.modal', function () {
-            document.getElementById("filePreviewFrame").src = '';
-        });
-
-        // Make sure Bootstrap is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof bootstrap === 'undefined') {
-                console.error('Bootstrap is not loaded');
-            }
-        });
-
-        // Track completed content
-        let completedContent = new Set(JSON.parse(localStorage.getItem('completedContent') || '[]'));
-        const selectedCourse = document.getElementById('course').value;
-        const storageKey = `completedContent_${selectedCourse}`;
-
-        function markAsCompleted(contentId) {
-            // Add to completed set
-            completedContent.add(contentId);
-            
-            // Update localStorage
-            localStorage.setItem(storageKey, JSON.stringify([...completedContent]));
-            
-            // Show completion badge
-            const statusBadge = document.getElementById(`status-${contentId}`);
-            if (statusBadge) {
-                statusBadge.style.display = 'inline-block';
-            }
-            
-            // Check if all content is completed
-            checkAllCompleted();
-        }
-
-        function checkAllCompleted() {
-            const totalContent = document.querySelectorAll('.content-id').length;
-            const certificateBtn = document.getElementById('certificateBtn');
-            
-            if (completedContent.size === totalContent && totalContent > 0) {
-                certificateBtn.disabled = false;
-            }
-        }
-
-        function generateCertificate() {
-            const course = document.getElementById('course').value;
-            window.location.href = `/generate_certificate?course=${encodeURIComponent(course)}`;
-        }
-
-        // Initialize completion status on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load completed content from localStorage
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                completedContent = new Set(JSON.parse(saved));
-            }
-
-            // Update UI for completed items
-            completedContent.forEach(contentId => {
-                const statusBadge = document.getElementById(`status-${contentId}`);
+        fetch('/mark_lesson_complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}' // Add CSRF token header if using Flask-WTF CSRFProtect globally
+            },
+            body: JSON.stringify({ lesson_id: lessonId, course_id: courseId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Lesson ${lessonId} marked complete.`);
+                const statusBadge = document.getElementById(`status-${lessonId}`);
                 if (statusBadge) {
                     statusBadge.style.display = 'inline-block';
                 }
-            });
+                updateProgressBar(data.percentage, data.completed_count, data.total_count);
 
-            // Check if all content is completed
-            checkAllCompleted();
+                const current_quiz_passed = {{ quiz_passed|tojson }};
+                // Need the quiz_taken status from the initial load or updated status if available
+                const current_quiz_taken = {{ quiz_taken|tojson }};
+                const quiz_exists = {{ (quiz is not none)|tojson }};
+                checkButtonStates(data.percentage, data.total_count, current_quiz_passed, current_quiz_taken, quiz_exists);
+
+            } else {
+                console.error('Failed to mark lesson complete:', data.message);
+                // Optionally show a user-facing error
+            }
+        })
+        .catch(error => {
+            console.error('Error marking lesson complete:', error);
+            // Optionally show a user-facing error
         });
-    </script>
+    }
+
+    // Function to update progress bar UI
+    function updateProgressBar(percentage, completed_count, total_count) {
+        const progressBar = document.getElementById('progress-bar');
+        const completedCountSpan = document.getElementById('completed-count');
+        const totalCountSpan = document.getElementById('total-count');
+
+        if (progressBar) {
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+        }
+        if (completedCountSpan) completedCountSpan.textContent = completed_count;
+        if (totalCountSpan) totalCountSpan.textContent = total_count;
+    }
+
+    function checkButtonStates(percentage, total_count, quiz_passed, quiz_taken, quiz_exists) {
+        const certificateBtn = document.getElementById('certificateBtn');
+        const takeQuizBtn = document.getElementById('takeQuizBtn');
+
+        // Certificate Button Logic (remains the same)
+        if (certificateBtn) {
+            // ... (keep certificate logic) ...
+            const lessons_complete = percentage >= 100 && total_count > 0;
+            let enable_cert = false;
+            if (lessons_complete) {
+                if (quiz_exists) {
+                    if (quiz_passed) {
+                        enable_cert = true;
+                    }
+                } else {
+                    enable_cert = true; // No quiz needed
+                }
+            }
+            certificateBtn.disabled = !enable_cert;
+        }
+
+        // Take Quiz Button Logic (Updated)
+        if (takeQuizBtn) {
+            const lessons_complete = percentage >= 100;
+            // Enable if lessons complete AND quiz exists AND quiz not already PASSED
+            takeQuizBtn.disabled = !(lessons_complete && quiz_exists && !quiz_passed);
+
+            // Update button text based on state
+            if (quiz_taken && !quiz_passed) {
+                 takeQuizBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Retake Final Quiz';
+            } else {
+                 takeQuizBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Take Final Quiz';
+            }
+        }
+    }
+        // Function to redirect to the quiz page
+    function takeQuiz() {
+        const courseId = '{{ selected_course_id }}';
+        if(courseId) {
+            window.location.href = `/course/${courseId}/quiz/take`;
+        } else {
+             alert("Please select a course first.");
+        }
+    }
+
+    // Modify checkCertificateButton and initial call if needed,
+    // to reflect the new logic based on quiz status
+    function checkCertificateButton(percentage, total_count, quiz_passed, quiz_exists) {
+        const certificateBtn = document.getElementById('certificateBtn');
+        if (certificateBtn) {
+            const lessons_complete = percentage >= 100 && total_count > 0;
+            let enable_cert = false;
+
+            if (lessons_complete) {
+                if (quiz_exists) {
+                    if (quiz_passed) {
+                        enable_cert = true;
+                    }
+                } else {
+                    // No quiz, enable if lessons complete
+                    enable_cert = true;
+                }
+            }
+             certificateBtn.disabled = !enable_cert;
+        }
+    }
+
+
+
+
+    // Function to generate certificate URL (pass course ID)
+    function generateCertificate() {
+        const courseId = '{{ selected_course_id }}';
+        if(courseId) {
+            window.location.href = `/generate_certificate?course_id=${courseId}`;
+        } else {
+             alert("Please select a course first.");
+        }
+    }
+
+    // Clear iframe src when modal is hidden
+    if (filePreviewModalElement) {
+         filePreviewModalElement.addEventListener('hidden.bs.modal', function () {
+            const previewFrame = document.getElementById("filePreviewFrame");
+            if (previewFrame) previewFrame.src = '';
+         });
+    }
+    // Initial check for certificate button state on page load
+    document.addEventListener('DOMContentLoaded', function() {
+         const initial_quiz_passed = {{ quiz_passed|tojson }};
+         const initial_quiz_taken = {{ quiz_taken|tojson }};
+         const initial_quiz_exists = {{ (quiz is not none)|tojson }};
+
+         checkButtonStates( {{ completion_percentage }}, {{ all_lessons_count }}, initial_quiz_passed, initial_quiz_taken, initial_quiz_exists );
+    });
+</script>
 {% endblock content %}
