@@ -99,7 +99,7 @@
                     </ul>
                     <div class="dropdown ml-3">
                         <button class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" id="userMenuButton">
-                            <img class="rounded-circle" height="40" src="{{ session.get('profile_picture') }}" width="40" />
+                            <img class="rounded-circle" height="40" src="/{{ session.get('profile_picture') }}" width="40" />
                         </button>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenuButton">
                             <div class="dropdown-item text-center">{{ session.get('user_name') }}</div>
@@ -125,7 +125,7 @@
                     </ul>
                     <div class="dropdown ml-3">
                         <button class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" id="userMenuButton">
-                            <img class="rounded-circle" height="40" src="{{ session.get('profile_picture') }}" width="40" />
+                            <img class="rounded-circle" height="40" src="/{{ session.get('profile_picture') }}" width="40" />
                         </button>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenuButton">
                             <div class="dropdown-item text-center">{{ session.get('mentor_name') }}</div>

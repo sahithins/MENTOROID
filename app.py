@@ -88,6 +88,47 @@ Session(app) # Initialize session extension
 # Initialize MongoEngine
 db.init_app(app)
 
+def setup_initial_admin():
+    """Checks environment variables and creates an initial admin if specified and not existing."""
+    admin_email = os.getenv('INITIAL_ADMIN_EMAIL')
+    admin_pass = os.getenv('INITIAL_ADMIN_PASSWORD')
+    admin_name = os.getenv('INITIAL_ADMIN_FULLNAME', 'Default Admin') # Provide a default name
+
+    if admin_email and admin_pass:
+        print(f"INFO: Checking for initial admin user: {admin_email}")
+        existing_admin = User.objects(email=admin_email).first()
+
+        if not existing_admin:
+            print(f"INFO: Initial admin '{admin_email}' not found. Creating...")
+            try:
+                hashed_password = bcrypt.generate_password_hash(admin_pass).decode('utf-8')
+                admin_user = User(
+                    email=admin_email,
+                    fullname=admin_name,
+                    password=hashed_password,
+                    role='admin',
+                    age=0,
+                    address="",
+                    phonenumber=""
+
+                )
+                admin_user.save()
+                print(f"SUCCESS: Initial admin user '{admin_name}' with email '{admin_email}' created.")
+            except ValidationError as e:
+                print(f"ERROR: Failed to create initial admin '{admin_email}'. Validation Error: {e}", file=sys.stderr)
+            except NotUniqueError:
+                 print(f"ERROR: Failed to create initial admin '{admin_email}'. Email already exists (race condition?).", file=sys.stderr)
+            except Exception as e:
+                print(f"ERROR: An unexpected error occurred during initial admin creation for '{admin_email}': {e}", file=sys.stderr)
+                traceback.print_exc(file=sys.stderr)
+        else:
+            print(f"INFO: Initial admin user '{admin_email}' already exists. Skipping creation.")
+    else:
+        pass
+
+with app.app_context():
+    setup_initial_admin()
+
 # Initialize Flask-Admin
 admin = Admin(app, name='My Admin', template_mode='bootstrap3')
 
