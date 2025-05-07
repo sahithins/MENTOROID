@@ -101,7 +101,7 @@
                     </div>
                 </div>
             {% else %}
-                 {% if selected_course_id %} {# Only show if a course was selected but no structure found #}
+                 {% if selected_course_id %} 
                      <div class="alert alert-warning">No units or lessons found for this course.</div>
                  {% endif %}
             {% endfor %}
@@ -149,11 +149,11 @@
 </div>
 
 <script>
-    // Ensure Bootstrap is loaded for modal functionality
+   
     var filePreviewModalElement = document.getElementById('filePreviewModal');
     var previewModal = filePreviewModalElement ? new bootstrap.Modal(filePreviewModalElement) : null;
 
-    // Function to handle viewing file and marking complete
+    
     function viewFileAndMarkComplete(fileUrl, lessonId) {
         const previewFrame = document.getElementById("filePreviewFrame");
         if (previewFrame) {
@@ -163,19 +163,19 @@
             } else {
                  console.error("Preview modal not initialized");
             }
-            // Mark as completed when viewed
+           
             markLessonAsCompleted(lessonId);
         } else {
              console.error("Preview frame not found");
         }
     }
 
-     // Function to mark lesson as completed via AJAX
+   
     function markLessonAsCompleted(lessonId) {
-        const courseId = '{{ selected_course_id }}'; // Get course ID from template context
+        const courseId = '{{ selected_course_id }}'; 
         const statusBadge = document.getElementById(`status-${lessonId}`);
 
-        // Avoid re-sending if already marked visually
+        
         if (statusBadge && statusBadge.style.display !== 'none') {
              console.log(`Lesson ${lessonId} already marked.`);
              return;
@@ -185,7 +185,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}' // Add CSRF token header if using Flask-WTF CSRFProtect globally
+                'X-CSRFToken': '{{ csrf_token() }}' 
             },
             body: JSON.stringify({ lesson_id: lessonId, course_id: courseId })
         })
@@ -200,23 +200,23 @@
                 updateProgressBar(data.percentage, data.completed_count, data.total_count);
 
                 const current_quiz_passed = {{ quiz_passed|tojson }};
-                // Need the quiz_taken status from the initial load or updated status if available
+              
                 const current_quiz_taken = {{ quiz_taken|tojson }};
                 const quiz_exists = {{ (quiz is not none)|tojson }};
                 checkButtonStates(data.percentage, data.total_count, current_quiz_passed, current_quiz_taken, quiz_exists);
 
             } else {
                 console.error('Failed to mark lesson complete:', data.message);
-                // Optionally show a user-facing error
+                
             }
         })
         .catch(error => {
             console.error('Error marking lesson complete:', error);
-            // Optionally show a user-facing error
+            
         });
     }
 
-    // Function to update progress bar UI
+
     function updateProgressBar(percentage, completed_count, total_count) {
         const progressBar = document.getElementById('progress-bar');
         const completedCountSpan = document.getElementById('completed-count');
@@ -235,9 +235,9 @@
         const certificateBtn = document.getElementById('certificateBtn');
         const takeQuizBtn = document.getElementById('takeQuizBtn');
 
-        // Certificate Button Logic (remains the same)
+        
         if (certificateBtn) {
-            // ... (keep certificate logic) ...
+           
             const lessons_complete = percentage >= 100 && total_count > 0;
             let enable_cert = false;
             if (lessons_complete) {
@@ -246,19 +246,18 @@
                         enable_cert = true;
                     }
                 } else {
-                    enable_cert = true; // No quiz needed
+                    enable_cert = true; 
                 }
             }
             certificateBtn.disabled = !enable_cert;
         }
 
-        // Take Quiz Button Logic (Updated)
+        
         if (takeQuizBtn) {
             const lessons_complete = percentage >= 100;
-            // Enable if lessons complete AND quiz exists AND quiz not already PASSED
+            
             takeQuizBtn.disabled = !(lessons_complete && quiz_exists && !quiz_passed);
 
-            // Update button text based on state
             if (quiz_taken && !quiz_passed) {
                  takeQuizBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Retake Final Quiz';
             } else {
@@ -266,7 +265,7 @@
             }
         }
     }
-        // Function to redirect to the quiz page
+       
     function takeQuiz() {
         const courseId = '{{ selected_course_id }}';
         if(courseId) {
@@ -276,8 +275,7 @@
         }
     }
 
-    // Modify checkCertificateButton and initial call if needed,
-    // to reflect the new logic based on quiz status
+   
     function checkCertificateButton(percentage, total_count, quiz_passed, quiz_exists) {
         const certificateBtn = document.getElementById('certificateBtn');
         if (certificateBtn) {
@@ -290,7 +288,7 @@
                         enable_cert = true;
                     }
                 } else {
-                    // No quiz, enable if lessons complete
+                    
                     enable_cert = true;
                 }
             }
@@ -301,7 +299,6 @@
 
 
 
-    // Function to generate certificate URL (pass course ID)
     function generateCertificate() {
         const courseId = '{{ selected_course_id }}';
         if(courseId) {
@@ -311,20 +308,27 @@
         }
     }
 
-    // Clear iframe src when modal is hidden
     if (filePreviewModalElement) {
          filePreviewModalElement.addEventListener('hidden.bs.modal', function () {
             const previewFrame = document.getElementById("filePreviewFrame");
             if (previewFrame) previewFrame.src = '';
          });
     }
-    // Initial check for certificate button state on page load
-    document.addEventListener('DOMContentLoaded', function() {
-         const initial_quiz_passed = {{ quiz_passed|tojson }};
-         const initial_quiz_taken = {{ quiz_taken|tojson }};
-         const initial_quiz_exists = {{ (quiz is not none)|tojson }};
+    
+document.addEventListener('DOMContentLoaded', function() {
+    const initial_quiz_passed = {{ quiz_passed | tojson }};
+    const initial_quiz_taken = {{ quiz_taken | tojson }};
+    const initial_quiz_exists = {{ (quiz is not none) | tojson }};
 
-         checkButtonStates( {{ completion_percentage }}, {{ all_lessons_count }}, initial_quiz_passed, initial_quiz_taken, initial_quiz_exists );
-    });
+    checkButtonStates(
+        {{ completion_percentage }},
+        {{ all_lessons_count }},
+        initial_quiz_passed,
+        initial_quiz_taken,
+        initial_quiz_exists
+    );
+});
+
+
 </script>
 {% endblock content %}

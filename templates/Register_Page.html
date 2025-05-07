@@ -101,10 +101,7 @@
                             <div class="text-center">
                                 <button type="submit" class="btn btn-success">Submit</button>
                             </div>
-                            <div class="text-center mt-3">
-                                <a href="/User _Login">Login</a> |
-                                <a href="/Register">Register</a>
-                            </div>
+                           
                         </form>
                     </div>
                 </div>
@@ -122,11 +119,11 @@
             if (role === "Mentor") {
                 ageField.style.display = "none";
                 addressField.style.display = "none";
-                mentorFields.style.display = "block"; // Show mentor fields
+                mentorFields.style.display = "block"; 
             } else {
-                ageField.style.display = "block"; // Use block to align correctly
-                addressField.style.display = "block"; // Use block to align correctly
-                mentorFields.style.display = "none"; // Hide mentor fields
+                ageField.style.display = "block"; 
+                addressField.style.display = "block"; 
+                mentorFields.style.display = "none";
             }
         });
     </script>
